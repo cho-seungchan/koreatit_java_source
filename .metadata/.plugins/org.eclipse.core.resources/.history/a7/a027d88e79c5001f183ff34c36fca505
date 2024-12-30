@@ -1,0 +1,13 @@
+package com.example.ex01.mapper;
+
+import org.apache.ibatis.annotations.Mapper;
+
+@Mapper
+public interface ProductMapper {
+//	상품 추가
+	public void insert();
+//	상품 조회
+//	상품 수정
+//	상품 삭제
+//	상품 전체조회
+}

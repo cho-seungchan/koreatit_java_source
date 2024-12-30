@@ -1,0 +1,17 @@
+spring.application.name=ex02
+
+# Server configuration
+server.port=0
+
+# log.info에서 테이블이 보이도록 추가한 부분
+# JDBC spy datasource
+log4jdbc.spylogdelegator.name=net.sf.log4jdbc.log.slf4j.Slf4jSpyLogDelegator
+# log.info에서 테이블이 보이도록 추가한 부분
+
+# Spring datasource configuration
+# log.info에서 테이블이 보이도록 추가한 부분
+spring.datasource.hikari.driver-class-name=net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+# log.info에서 테이블이 보이도록 추가한 부분
+spring.datasource.hikari.jdbc-url=jdbc:log4jdbc:oracle:thin:@localhost:1521:XE
+spring.datasource.hikari.username=hr
+spring.datasource.hikari.password=1234

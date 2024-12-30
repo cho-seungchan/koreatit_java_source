@@ -1,0 +1,5 @@
+package com.example.ex02.domian;
+
+public class OrderVO {
+
+}

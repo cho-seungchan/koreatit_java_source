@@ -1,0 +1,21 @@
+package com.example.ex02.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+@Controller
+@RequestMapping("/ex02")
+public class ExampleController02 {
+
+	@GetMapping("/ex01")
+	public String getEx01() {
+		return "ex02/ex01/ex01";
+	}
+	
+	@GetMapping("/ex02")
+	public String getEx02(@RequestParam("name") String name) {
+		return "ex02/ex02/ex02";
+	}
+}

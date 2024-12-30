@@ -1,0 +1,19 @@
+package com.example.ex01.mapper;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import lombok.extern.slf4j.Slf4j;
+
+@SpringBootTest
+@Slf4j
+public class MapperTest {
+
+	private TimeMapper timeMapper;
+	
+	@Test
+	public void timeTest() {
+		log.info("TimeMapper 테스트 입니다  "+timeMapper.getTime());
+	}
+	
+}

@@ -1,0 +1,7 @@
+package com.example.ex02.mapper;
+
+public class ProductMapper {
+	
+	public void postResister(ProductVO product);
+
+}

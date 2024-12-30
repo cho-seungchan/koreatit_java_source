@@ -1,0 +1,10 @@
+package com.example.ex02.mapper;
+
+import com.example.ex02.domian.ProductVO;
+
+public interface ProductMapper {
+	
+	public void postResister(ProductVO product);
+
+}
+

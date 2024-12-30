@@ -1,0 +1,13 @@
+package com.example.ex02.mapper;
+
+import org.springframework.stereotype.Repository;
+
+import com.example.ex02.domian.ProductVO;
+
+@Repository
+public interface ProductMapper {
+	
+	public void postResister(ProductVO product);
+
+}
+
