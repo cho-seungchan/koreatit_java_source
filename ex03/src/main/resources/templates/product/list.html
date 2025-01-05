@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 목록</title>
+    <style>
+        div {
+            margin: 0 auto;
+            width: 1200px;
+        }
+
+        table {
+            width: 100%;
+        }
+
+        button {
+            width: 50%;
+        }
+		
+		.input {
+			text-align: center;
+			vertical-align: middle;
+		}
+		
+    </style>
+</head>
+<body>
+    <div>
+
+        <table border="1">
+            <tr>
+                <th>단일 선택</th>
+				<th>주문 개수</th>
+				<th>주문 가격</th>
+                <th>상품 번호</th>
+                <th>상품 이름</th>
+                <th>상품 재고</th>
+                <th>상품 가격</th>
+                <th>등록 날짜</th>
+                <th>수정 날짜</th>
+            </tr>
+            <th:block th:each="product : ${products}">
+                <tr th:object="${product}">
+                    <td class="input" ><input type="radio" name="productId" th:value="*{productId}"></td>
+                    <td class="input" ><input type="text" class="orderCount" readonly></td>
+					<td class="input" ><input type="text" class="orderPrice" readonly></td>
+                    <td th:text="*{productId}"></td>
+                    <td th:text="*{productName}"></td>
+                    <td th:text="*{productStock}"></td>
+                    <td th:text="*{productPrice}"></td>
+                    <td th:text="*{registerDate}"></td>
+                    <td th:text="*{updateDate}"></td>
+                </tr>
+            </th:block>
+        </table>
+        <button type="button" id="order-done">주문 완료</button><button type="button" onclick="location.href='/order/list';">주문 내역</button>
+		
+        <div></div>
+		<div></div>
+		
+		<!-- 성공 메시지 출력 -->
+		<div th:if="${successMessage}" class="alert alert-success">
+		    <p th:text="'상품번호 : '+${productId}+'  가격 : '+${orderPrice}+' 물량 : '+${orderCount}+'  '+${successMessage}"></p>
+		</div>
+
+		<!-- 예외 메시지 출력 -->
+		<div th:if="${errorMessage}" class="error-message">
+		           <p th:text="${errorMessage}"></p>
+		</div>
+
+    </div>
+    <form th:action="@{/order/done}" method="post" name="order-form">
+        <input type="hidden" name="productId">
+		<input type="hidden" name="orderCount">
+		<input type="hidden" name="orderPrice">
+    </form>
+</body>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+    const $radios = $("input[type='radio']");
+	const $inputs1 = $("input[class='orderCount']");
+	const $inputs2 = $("input[class='orderPrice']");
+    const $done = $("#order-done");
+    const $form = $("form[name='order-form']");
+    let $temp1, $temp2, i;
+
+    $radios.on("click", function(){
+       i = $radios.index(this);
+	   console.log(i+"여기 들어왔어요")
+       if($temp1 || $temp2) {
+           $temp1.prop("readOnly", true);
+           $temp1.val("");
+		   $temp2.prop("readOnly", true);
+		   $temp2.val("");
+       }
+	   $inputs1.eq(i).prop("readOnly", false);
+	   $temp1 = $inputs1.eq(i);
+       $inputs2.eq(i).prop("readOnly", false);
+       $temp2 = $inputs2.eq(i);
+    });
+
+    $done.on("click", function(){
+        if(i>=0) {               // 라디오버튼의 첫번째 인덱스값은 0
+            console.log(i);
+            $form.find("input[name='productId']").val($radios.eq(i).val());
+			$form.find("input[name='orderCount']").val($inputs1.eq(i).val());
+			$form.find("input[name='orderPrice']").val($inputs2.eq(i).val());
+			 
+            console.log($form.find("input[name='productId']").val());  // 개발자 도구 콘솔 탭에 보임
+			console.log($form.find("input[name='orderCount']").val()); // 개발자 도구 콘솔 탭에 보임
+			console.log($form.find("input[name='orderPrice']").val()); // 개발자 도구 콘솔 탭에 보임
+            $form.submit();
+        }
+    });
+</script>
+</html>

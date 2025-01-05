@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.ex03.mapper.OrderMapper">
+
+	<select id="getOrderList" resultType="OrderListDto">
+		SELECT 
+			o.ORDER_ID, 
+			p.PRODUCT_NAME, 
+			p.PRODUCT_PRICE, 
+			o.ORDER_PRICE, 
+			o.ORDER_COUNT, 
+			o.ORDER_PRICE * o.ORDER_COUNT ORDER_AMOUNT,
+			o.ORDER_DATE
+		FROM TBL_ORDER o
+		JOIN TBL_PRODUCT p
+		ON   o.PRODUCT_ID = p.PRODUCT_ID
+		<choose>
+			<when test="sort == 'money'">
+				ORDER BY o.ORDER_PRICE * o.ORDER_COUNT DESC
+			</when>
+			<otherwise>
+				ORDER BY o.ORDER_DATE DESC
+			</otherwise>
+		</choose>
+	</select>
+
+	<insert id="postOrderDone">
+		INSERT INTO TBL_ORDER
+			(ORDER_ID, 
+			 PRODUCT_ID, 
+			 ORDER_PRICE,
+			 ORDER_COUNT)
+		VALUES
+			(SEQ_ORDER.NEXTVAL,
+			 #{productId},
+			 #{orderPrice},
+<!--			 (SELECT PRODUCT_PRICE FROM TBL_PRODUCT WHERE PRODUCT_ID = #{productId}), --> 
+			 #{orderCount})
+	</insert>
+	
+
+</mapper>

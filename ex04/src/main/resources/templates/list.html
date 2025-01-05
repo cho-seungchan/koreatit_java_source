@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 목록</title>
+    <style>
+        div {
+            margin: 0 auto;
+            width: 1200px;
+        }
+
+        table {
+            width: 100%;
+        }
+
+        button {
+            width: 50%;
+        }
+		
+
+		button.register-ready {
+		    width: 100%;
+		}
+
+		div.register-wrap {
+		    display: none;
+		    width: 600px;
+		}
+
+		div.register-wrap div {
+		    width: 100%;
+		}
+
+		div.register-wrap input {
+		    width: 100%;
+		}
+
+
+		span {
+		    cursor: pointer;
+		}
+
+		span.on {
+		    font-weight: bold;
+		}
+
+		#container {
+		    margin: 0 auto;
+		    width: 1200px;
+		    display: none;
+		}
+
+		div.sort {
+		    text-align: right;
+		}
+
+		
+		.input {
+			text-align: center;
+			vertical-align: middle;
+		}
+		
+    </style>
+</head>
+<body>
+    <div>
+
+		<button type="button" class="register-ready">상품 추가</button>
+		<div class="register-wrap" th:object="${productForm}">
+		    <div>
+		        상품 이름<input type="text" th:field="*{productName}" placeholder="상품 이름">
+		    </div>
+		    <div>
+		        상품 제고<input type="text" th:field="*{productStock}" placeholder="상품 재고">
+		    </div>
+		    <div>
+		        상품 가격<input type="text" th:field="*{productPrice}" placeholder="상품 가격">
+		    </div>
+		    <input type="button" class="register-done" value="등록">
+		</div>
+		
+        <table border="1">
+            <tr>
+                <th>단일 선택</th>
+				<th>주문 개수</th>
+				<th>주문 가격</th>
+                <th>상품 번호</th>
+                <th>상품 이름</th>
+                <th>상품 재고</th>
+                <th>상품 가격</th>
+                <th>등록 날짜</th>
+                <th>수정 날짜</th>
+            </tr>
+            <th:block th:each="product : ${products}">
+                <tr th:object="${product}">
+                    <td class="input" ><input type="radio" name="productId" th:value="*{productId}"></td>
+                    <td class="input" ><input type="text" class="orderCount" readonly></td>
+					<td class="input" ><input type="text" class="orderPrice" readonly></td>
+                    <td th:text="*{productId}"></td>
+                    <td th:text="*{productName}"></td>
+                    <td th:text="*{productStock}"></td>
+                    <td th:text="*{productPrice}"></td>
+                    <td th:text="*{registerDate}"></td>
+                    <td th:text="*{updateDate}"></td>
+                </tr>
+            </th:block>
+        </table>
+        <button type="button" id="order-done">주문 완료</button><button type="button" id="order-list">주문 내역</button>
+		
+    </div>
+    <form th:action="@{/order/done}" method="post" name="order-form">
+        <input type="hidden" name="productId">
+		<input type="hidden" name="orderCount">
+		<input type="hidden" name="orderPrice">
+    </form>
+
+	<div id="container">
+	    <div class="sort">
+	        <span class="on" id="recent" data-sort="recent">최신순</span>
+	        <span class="" id="money" data-sort="money">결제 금액순</span>
+	    </div>
+	    <div class="order-list"></div>
+	</div>
+	
+</body>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+    const $radios        = $("input[type='radio']");
+	const $inputs1       = $("input[class='orderCount']");
+	const $inputs2       = $("input[class='orderPrice']");
+	const $ids           = $("input[name='productId']");
+    const $done          = $("#order-done");
+    const $form          = $("form[name='order-form']");
+	const $registerReady = $("button.register-ready");
+	const $registerDone  = $("input.register-done");
+	const $orderList     = $("button#order-list");
+	const $spans         = $("div.sort span");
+    let $temp1, $temp2, i, sort;
+
+
+	$done.on("click", function(){
+	console.log("order/write 들어옴");
+	    $.ajax({
+	        url: "/order/write",
+	        type: "post",
+	        data: JSON.stringify({productId: $ids.eq(i).val(), orderCount: $inputs1.eq(i).val(), orderPrice: $inputs2.eq(i).val()}),
+	        contentType: "application/json; charset=utf-8",
+	        success: function(){
+			    console.log("order/write 요청 성공");
+
+	            $.ajax({
+	                url: "/product/" + $ids.eq(i).val(),
+	                success: function(product) {
+					    console.log("order/write 후 /product/{productId} 요청 성공");
+	                    console.log("상품제고"+product.productStock);
+						
+	                    // 전체 tr이 th=0이고 그 뒤 부터 1이기 때문에 tr은 0부터, ids는 1부터 시작
+	                    // eq(5)가 product.productStock 인 이유는 인덱스가 0부터 시작. 
+	                    $($("tr").eq(i + 1).children()).eq(5).text(product.productStock);
+	                }
+	            });
+
+	            $orderList.click();
+	        }
+	    });
+	});
+
+	$spans.on("click", function(){
+	    $spans.attr("class", "");
+	    $(this).attr("class", "on");
+	    $orderList.click();
+	});
+
+	$orderList.on("click", function(){
+	    console.log("orderList.on 들어옴");
+	    $("#container").show();
+/*	    $spans.each((i, span) => {
+
+	        // class에 값이 있는 경우(속성이 있는 경우) 만 선택. 
+	        // if ($(span).attr("class") !== undefined)  두개가 다 선택되고, sort는 최종 값.
+	        if($(span).attr("class")){
+	            sort = $(span).data("sort");
+	        }
+	    });   */
+		sort = $spans.filter('.on').first().data('sort');
+		console.log("sort is "+sort);
+
+	    $("span").attr("class", "");
+	    $("span#" + sort).attr("class", "on");
+	    $.ajax({
+	        url: "/order/list/" + sort,
+	        success: function(orders){
+	            let text = `
+	                <table border="1">
+	                    <tr>
+	                        <th>상품 이름</th>
+	                        <th>상품 가격</th>
+							<th>주문 번호</th>
+							<th>주문 가격</th>
+	                        <th>주문 개수</th>
+	                        <th>주문 금액</th>
+	                        <th>주문 날짜</th>
+	                    </tr>
+	            `;
+	            orders.forEach(order => {
+	                text += `
+
+	                        <tr>
+	                            <td>${order.productName}</td>
+	                            <td>${order.productPrice}</td>
+								<td>${order.orderId}</td>
+	                            <td>${order.orderPrice}</td>
+								<td>${order.orderCount}</td>
+								<td>${order.orderAmount}</td>
+	                            <td>${order.orderDate}</td>
+	                        </tr>
+	                `;
+	            });
+	            text += `</table>`;
+
+				// <div class="order-list"></div> 를 <div class="order-list">text</div>로 바꿔라
+	            $("div.order-list").html(text);
+	        }
+	    });
+	});
+
+	$registerReady.on("click", function(){
+	    $(this).hide();
+	    $("div.register-wrap").show();
+	});
+
+
+	$registerDone.on("click", function(){
+	    $.ajax({
+	        url: "/product/new",
+	        type: "post",
+	        data: JSON.stringify({productName: $("#productName").val(), productStock: $("#productStock").val(), productPrice: $("#productPrice").val()}),
+	        contentType: "application/json; charset=utf-8",
+	        success: function(){
+	            location.reload();
+	        }
+	    });
+	});
+
+	
+    $radios.on("click", function(){	
+		if ($("#container").is(":visible")) {
+	        $("#container").hide();
+	    } 
+		
+       i = $radios.index(this);
+       if($temp1 || $temp2) {
+           $temp1.prop("readOnly", true);
+           $temp1.val("");
+		   $temp2.prop("readOnly", true);
+		   $temp2.val("");
+       }
+	   $inputs1.eq(i).prop("readOnly", false);
+	   $temp1 = $inputs1.eq(i);
+       $inputs2.eq(i).prop("readOnly", false);
+       $temp2 = $inputs2.eq(i);
+    });
+
+/*    $done.on("click", function(){
+        if(i>=0) {               // 라디오버튼의 첫번째 인덱스값은 0
+            console.log(i);
+            $form.find("input[name='productId']").val($radios.eq(i).val());
+			$form.find("input[name='orderCount']").val($inputs1.eq(i).val());
+			$form.find("input[name='orderPrice']").val($inputs2.eq(i).val());
+			 
+            console.log($form.find("input[name='productId']").val());  // 개발자 도구 콘솔 탭에 보임
+			console.log($form.find("input[name='orderCount']").val()); // 개발자 도구 콘솔 탭에 보임
+			console.log($form.find("input[name='orderPrice']").val()); // 개발자 도구 콘솔 탭에 보임
+            $form.submit();
+        }
+    });  */
+</script>
+</html>

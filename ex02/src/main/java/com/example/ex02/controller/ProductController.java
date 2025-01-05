@@ -23,8 +23,10 @@ public class ProductController {
 
 	@GetMapping("list")
 	public String getList(Model model) {
-		List<ProductVO> products = productMapper.getList();
-		model.addAttribute("products",products);
+//		List<ProductVO> products = productMapper.getList();
+//		model.addAttribute("products",products);
+		model.addAttribute("products",productMapper.getList());
+		
 		return "product/product-list";
 	}
 	

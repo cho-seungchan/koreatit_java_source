@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.ex03.mapper.ProductMapper">
+
+	<select id="getProductList" resultType="ProductDto">
+		SELECT 
+			PRODUCT_ID, 
+			PRODUCT_NAME, 
+			PRODUCT_STOCK, 
+			PRODUCT_PRICE, 
+			REGISTER_DATE, 
+			UPDATE_DATE
+		FROM TBL_PRODUCT
+	</select>
+	
+	<select id="checkProductStock" resultType="boolean">		
+		SELECT 
+			CASE
+				WHEN PRODUCT_STOCK >= #{orderCount} THEN 1 
+				ELSE 0
+			END AS result
+			FROM TBL_PRODUCT
+			WHERE PRODUCT_ID  = #{productId} 
+	</select>
+
+	<insert id="postProductRegister">
+		INSERT INTO TBL_PRODUCT
+				(PRODUCT_ID, 
+				 PRODUCT_NAME, 
+				 PRODUCT_STOCK, 
+				 PRODUCT_PRICE)
+		VALUES
+				(SEQ_PRODUCT.NEXTVAL,
+				 #{productName},
+				 #{productStock},
+				 #{productPrice})
+	</insert>
+	
+	<update id="reduceProductStock">
+		UPDATE TBL_PRODUCT
+			SET  
+			PRODUCT_STOCK = PRODUCT_STOCK - #{orderCount}
+			WHERE PRODUCT_ID  = #{productId} 
+	</update>
+	
+	
+</mapper>
