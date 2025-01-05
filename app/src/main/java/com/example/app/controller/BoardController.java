@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.app.domain.dto.Criteria;
 import com.example.app.domain.dto.Search;
@@ -16,10 +17,12 @@ import com.example.app.domain.vo.BoardVO;
 import com.example.app.service.BoardService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/board")
+@Slf4j
 public class BoardController {
 
 	private final BoardService boardService;
@@ -33,7 +36,7 @@ public class BoardController {
 	}
 	
 	@GetMapping("/write")
-	public String getBoardWrite(Model model) {
+	public String getBoardWrite(Search search, Criteria criteria, Model model) {
 		model.addAttribute("boardVO", new BoardVO());
 		return "/board/write";
 	}
@@ -46,16 +49,32 @@ public class BoardController {
 	
 	@GetMapping(value = {"read", "modify"})  // 두 url을 동시에 처리. return이 없으면 url 맞춰서 read.html, modify.html로 맞춰서 호출
 	                                         // modify는 post 처리만 하도록 수정했음
-	public void getBoardReadBoardNO(@RequestParam("boardNo") long boardNo, Model model) {
+	public void getBoardReadBoardNO(@RequestParam("boardNo") long boardNo, 
+									Search search, Criteria criteria, Model model) {
 		BoardVO boardVO = boardService.getBoardReadBoardNo(boardNo);
 		model.addAttribute("boardVO", boardVO);
 	}
 	
 	@PostMapping("/modify")
-	public String postBoardModify(@ModelAttribute("boardVO") BoardVO boardVO, Model model ) {
+	public String postBoardModify(@ModelAttribute("boardVO") BoardVO boardVO, 
+							Search search, Criteria criteria, 
+							RedirectAttributes redirectAttributes ) {
+		
 		boardService.postBoardModify(boardVO);
-//		return "forward:/board/list";  그대로 전달하는 방식이라서 /board/list 에 postmapping이 있어야 처리가 됨.
-		return "redirect:/board/list";
+		
+//        redirectAttributes.addAttribute("boardNo", boardVO.getBoardNo());
+//        redirectAttributes.addFlashAttribute(criteria);
+//        redirectAttributes.addFlashAttribute(search);
+		
+		log.info("boardNo "+boardVO.getBoardNo()+"page "+criteria.getPage()+"type "+search.getType()+"keyWord"+search.getKeyWord());
+		
+		 // 쿼리 파라미터로 데이터 전달 /board/read?boardNo=123&page=1&type=w&keyWord=example
+	    redirectAttributes.addAttribute("boardNo", boardVO.getBoardNo());
+	    redirectAttributes.addAttribute("page", criteria.getPage());
+	    redirectAttributes.addAttribute("type", search.getType());
+	    redirectAttributes.addAttribute("keyWord", search.getKeyWord());
+	    
+		return "redirect:/board/read";
 	}
 	
 	@PostMapping("/remove")

@@ -6,9 +6,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
 public class Criteria {
-	private int      page = 1;  // 최초 시작 페이지. 조회하면서 controller를 통해 변경됨.
+	private int      page;  
 	private int      rowCount;
 	private int      pageCount;
 	private int      startPage;
@@ -16,6 +15,10 @@ public class Criteria {
 	private int      realEnd;
 	private boolean  prev, next;
 	private int      total;
+	
+	public Criteria() {  // 최초 시작 페이지. 조회하면서 controller를 통해 변경됨.
+		this.page = 1;
+	}
 	
 	public void create(int total) {
 		this.total = total; // 전체 레코드 수

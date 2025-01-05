@@ -39,7 +39,9 @@
                 <p>게시글 등록</p>
             </header>
             <!-- Table -->
-            <h3><a class="list button small" th:href="@{/board/list}">목록 보기</a></h3>
+			<!-- 다른곳으로 분기했다가 돌아왔을 때, 이전 페이지, 검색조건을 유지하도록 
+				(page=${criteria.page}, type=${search.type}, keyWord=${search.keyword}) 추가-->
+            <h3><a class="list button small" th:href="@{/board/list(page=${criteria.page}, type=${search.type}, keyWord=${search.keyWord})}">목록 보기</a></h3>
             <div class="content">
                 <div class="form">
 <!--                    <form method="post" id="writeForm" enctype="multipart/form-data" th:object="${boardVO}">-->
@@ -57,15 +59,15 @@
                                 <h4>작성자</h4>
                                 <input placeholder="Writer" type="text" th:field="*{boardWriter}"/>
                             </div>
-<!--                            <div class="field">-->
-<!--                                <h4>첨부파일</h4>-->
-<!--                                <input type="file" name="upload" multiple>-->
-<!--                            </div>-->
-<!--                            <div class="field">-->
-<!--                                <div class="uploadResult">-->
-<!--                                    <ul></ul>-->
-<!--                                </div>-->
-<!--                            </div>-->
+                            <div class="field">
+                                <h4>첨부파일</h4>
+                                <input type="file" name="upload" multiple>
+                            </div>
+                            <div class="field">
+                                <div class="uploadResult">
+                                    <ul></ul>
+                                </div>
+                            </div>
                         </div>
                         <ul class="actions special">
                             <li><input type="submit" class="button" value="등록" /></li>

@@ -19,6 +19,7 @@
         div#searchWrap { display: flex; text-align: center; }
         form[name='searchForm'] {overflow: hidden;}
         select{width: 30%;}
+		div.paging-wrap {text-align: center;}
     </style>
 </head>
 <body class="is-preload">
@@ -32,7 +33,9 @@
                 <p>게시판 목록</p>
             </header>
             <!-- Table -->
-            <h3><a class="write button small" th:href="@{/board/write}">글 등록</a></h3>
+			<!-- 다른곳으로 분기했다가 돌아왔을 때, 이전 페이지, 검색조건을 유지하도록 
+				(page=${criteria.page}, type=${search.type}, keyWord=${search.keyword}) 추가-->
+            <h3><a class="write button small" th:href="@{/board/write(page=${criteria.page}, type=${search.type}, keyWord=${search.keyWord})}">글 등록</a></h3>
             <div class="table-wrapper">
                 <table>
                     <thead>
@@ -48,7 +51,9 @@
                     <th:block th:each="board:${boards}">
                         <tr th:object="${board}">
                             <td class="bno" th:text="*{boardNo}"></td>
-                            <td class="title"><a th:href="@{/board/read(boardNo=*{boardNo})}" th:text="*{boardTitle}"></a></td>
+							<!-- 다른곳으로 분기했다가 돌아왔을 때, 이전 페이지, 검색조건을 유지하도록 
+								(page=${criteria.page}, type=${search.type}, keyWord=${search.keyword}) 추가-->
+                            <td class="title"><a th:href="@{/board/read(boardNo=*{boardNo}, page=${criteria.page}, type=${search.type}, keyWord=${search.keyWord})}" th:text="*{boardTitle}"></a></td>
                             <td class="writer" th:text="*{boardWriter}"></td>
                             <td class="regDate" th:text="*{boardRegDate}"></td>
                             <td class="updateDate" th:text="*{boardUpdateDate}"></td>
@@ -80,20 +85,32 @@
 					        </div>
 					    </div>
 					</form>
-				
+					
 					<!--페이징 처리-->
 					<div class="paging-wrap" th:object="${criteria}">
 					    <div>
-							<!-- 검색조건을 다음 페이지에서도 계속 유지하기 위해  , type=*{search.type}, keyWord=*{search.keyWord} 추가-->
+					        <a class="change-page" th:if="*{prev}" th:href="*{startPage - 1}"><code>이전</code></a>
+					        <th:block th:each="page:${#numbers.sequence(criteria.startPage, criteria.endPage)}">
+					            <a class="change-page" th:if="${criteria.page != page}" th:href="${page}"><code th:text="${page}"></code></a>
+					            <code th:unless="${criteria.page != page}" th:text="${page}"></code>
+					        </th:block>
+					        <a class="change-page" th:if="*{next}" th:href="*{endPage + 1}"><code>다음</code></a>
+					    </div>
+					</div>
+				
+					<!--페이징 처리-->
+<!--					<div class="paging-wrap" th:object="${criteria}">
+					    <div>
+							검색조건을 다음 페이지에서도 계속 유지하기 위해  , type=*{search.type}, keyWord=*{search.keyWord} 추가
 					        <a th:if="*{prev}" th:href="@{/board/list(page=*{startPage - 1}, type=${search.type}, keyWord=${search.keyWord})}"><code>이전</code></a>
-							<!-- #numbers는 Thymeleaf의 유틸리티 객체 #numbers.sequence start부터 end까지의 정수 리스트를 반환 -->
+							#numbers는 Thymeleaf의 유틸리티 객체 #numbers.sequence start부터 end까지의 정수 리스트를 반환 
 					        <th:block th:each="page:${#numbers.sequence(criteria.startPage, criteria.endPage)}">
 					            <a th:if="${criteria.page != page}" th:href="@{/board/list(page=${page}, type=${search.type}, keyWord=${search.keyWord})}"><code th:text="${page}"></code></a>
 					            <code th:unless="${criteria.page != page}" th:text="${page}"></code>
 					        </th:block>
 					        <a th:if="*{next}" th:href="@{/board/list(page=*{endPage + 1}, type=${search.type}, keyWord=${search.keyWord})}"><code>다음</code></a>
 					    </div>
-					</div>				
+					</div>			-->
 				
             </div>
         </div>
@@ -112,5 +129,11 @@
         e.preventDefault();
         $("form[name=searchForm]").submit();
     })
+	
+	$("a.change-page").on("click", function(e){
+	    e.preventDefault();
+	    $("input[name=page]").val($(this).attr("href"));
+	    $("form[name=searchForm]").submit();
+	})
 </script>
 </html>

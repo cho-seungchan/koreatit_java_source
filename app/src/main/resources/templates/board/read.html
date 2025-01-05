@@ -39,7 +39,9 @@
                 <p>게시글 상세보기</p>
             </header>
             <!-- Table -->
-            <h3><a class="list button small" th:href="@{/board/list}">목록 보기</a></h3>
+			<!-- 다른곳으로 분기했다가 돌아왔을 때, 이전 페이지, 검색조건을 유지하도록 
+				(page=${criteria.page}, type=${search.type}, keyWord=${search.keyword}) 추가-->
+            <h3><a class="list button small" th:href="@{/board/list(page=${criteria.page}, type=${search.type}, keyWord=${search.keyWord})}">목록 보기</a></h3>
             <div class="content">
                 <di class="form" th:object="${boardVO}">
                    <form th:action="@{/board/remove(boardNo=*{boardNo})}" method="post">			  
@@ -55,18 +57,18 @@
                             <div class="field">
                                 <h4>내용</h4>
                                 <textarea rows="6" style="resize:none" th:field="*{boardContent}" readonly></textarea>
-                            </div>
-                            <div class="field">
+                              </div>
+                             <div class="field">
                                 <h4>작성자</h4>
-                                <input type="text" th:field="*{boardWriter}" readonly/>
-                            </div>
-<!--                            <div class="field">-->
-<!--                                <h4>첨부파일</h4>-->
-<!--                                <div class="uploadResult">-->
-<!--                                    <ul>-->
-<!--                                    </ul>-->
-<!--                                </div>-->
-<!--                            </div>-->
+                                 <input type="text" th:field="*{boardWriter}" readonly/>
+                             </div>
+						     <div class="field">
+						         <h4>첨부파일</h4>
+						         <div class="uploadResult">
+						             <ul>
+						             </ul>
+						         </div>
+						     </div>
                         </div>
                         <ul class="actions special">
                             <li>
@@ -111,10 +113,25 @@
 <script src="/js/util.js"></script>
 <script src="/js/main.js"></script>
 <script th:inline="javascript">
-    let boardNo = "[[${boardVO.boardNo}]]";
+/*
+	let boardNo = "[[${boardVO.boardNo}]]";
 
-    function modify(){
-        location.href = "/board/modify?boardNo=" + boardNo;
-    }
+	function modify(){
+	    location.href = "/board/modify?boardNo=" + boardNo;
+	}	
+*/	
+let boardNo = [[${boardVO.boardNo}]];
+let page = [[${criteria.page}]];
+let type = [[${search.type}]];
+let keyWord = [[${search.keyWord}]];
+
+function modify() {
+	console.log("function inininin");
+    location.href = "/board/modify?boardNo=" + boardNo + 
+                    "&page=" + page + 
+                    "&type=" + type + 
+                    "&keyWord=" + encodeURIComponent(keyWord);
+} 
+
 </script>
 </html>
