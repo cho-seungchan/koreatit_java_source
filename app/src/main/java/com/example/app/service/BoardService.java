@@ -5,12 +5,13 @@ import java.util.List;
 import com.example.app.domain.dto.Criteria;
 import com.example.app.domain.dto.Search;
 import com.example.app.domain.vo.BoardVO;
+import com.example.app.exception.InvalidInputException;
 
 public interface BoardService {
 
 	List<BoardVO> getBoardList(Search search, Criteria criteria);
 
-	void postBoardWrite(BoardVO boardVO);
+	void postBoardWrite(BoardVO boardVO) throws InvalidInputException;
 
 	BoardVO getBoardReadBoardNo(long boardNo);
 

@@ -14,6 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.example.app.domain.dto.Criteria;
 import com.example.app.domain.dto.Search;
 import com.example.app.domain.vo.BoardVO;
+import com.example.app.exception.InvalidInputException;
 import com.example.app.service.BoardService;
 
 import lombok.RequiredArgsConstructor;
@@ -42,9 +43,15 @@ public class BoardController {
 	}
 	
 	@PostMapping("/write")
-	public String postBoardWrite(@ModelAttribute("boardVO") BoardVO boardVO) {
-		boardService.postBoardWrite(boardVO);
-		return "redirect:/board/list";
+	public String postBoardWrite(@ModelAttribute("boardVO") BoardVO boardVO, 
+								 RedirectAttributes redirectAttributes) {
+		try {
+			boardService.postBoardWrite(boardVO);
+			return "redirect:/board/list";
+		} catch (InvalidInputException e) {
+			redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+			return "redirect:/board/write"; 
+		}
 	}
 	
 	@GetMapping(value = {"read", "modify"})  // 두 url을 동시에 처리. return이 없으면 url 맞춰서 read.html, modify.html로 맞춰서 호출
@@ -61,10 +68,6 @@ public class BoardController {
 							RedirectAttributes redirectAttributes ) {
 		
 		boardService.postBoardModify(boardVO);
-		
-//        redirectAttributes.addAttribute("boardNo", boardVO.getBoardNo());
-//        redirectAttributes.addFlashAttribute(criteria);
-//        redirectAttributes.addFlashAttribute(search);
 		
 		log.info("boardNo "+boardVO.getBoardNo()+"page "+criteria.getPage()+"type "+search.getType()+"keyWord"+search.getKeyWord());
 		

@@ -65,15 +65,22 @@
                             </div>
                             <div class="field">
                                 <div class="uploadResult">
-                                    <ul></ul>
                                 </div>
                             </div>
                         </div>
+
+						<!-- 예외 메시지 출력 -->
+						<div th:if="${errorMessage}" class="error-message">
+						           <p th:text="${errorMessage}"></p>
+						</div>
+
+						
                         <ul class="actions special">
                             <li><input type="submit" class="button" value="등록" /></li>
                         </ul>
                     </form>
                 </div>
+				
             </div>
         </div>
     </div>
@@ -85,4 +92,37 @@
 <script src="/js/breakpoints.min.js"></script>
 <script src="/js/util.js"></script>
 <script src="/js/main.js"></script>
+<script>
+	const uploadResult = document.querySelector(".uploadResult");
+	
+	$("input[type=file]").on("change", (e) => {
+		let formData = new FormData();
+		const files  = Array.from(e.target.files);
+		files.forEach((file) => {
+			formData.append("multipartFiles",file);
+		});
+		
+		$.ajax({
+			url : "/files/upload",
+			type : "post",
+			data : formData,
+			processData : false, // file전송시 :: FormData 객체를 문자열로 변환하지 않음
+			contentType : false, // file전송시 :: Content-Type 헤더를 브라우저에서 자동 생성
+			success : function(files){
+				let text = ``;
+				files.forEach((file) => {
+				// URL 인코딩 추가
+				const encodedFilePath = encodeURIComponent(`${file.fileUploadPath}/t_${file.fileUuid}_${file.fileName}`);
+
+				text += `<li>
+				    <img src="/files/display?filePathName=${encodedFilePath}">
+				</li>`;
+				})
+				uploadResult.innerHTML = text;
+			},	
+		});
+		
+	});
+</script>
+
 </html>
