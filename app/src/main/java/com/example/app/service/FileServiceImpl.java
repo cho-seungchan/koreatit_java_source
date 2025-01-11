@@ -16,10 +16,12 @@ import com.example.app.domain.vo.FileVO;
 import com.example.app.mapper.FileMapper;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnailator;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class FileServiceImpl implements FileService{
 
 	private final FileMapper fileMapper;

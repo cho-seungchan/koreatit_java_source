@@ -65,6 +65,7 @@
                             </div>
                             <div class="field">
                                 <div class="uploadResult">
+									<ul></ul>
                                 </div>
                             </div>
                         </div>
@@ -93,15 +94,29 @@
 <script src="/js/util.js"></script>
 <script src="/js/main.js"></script>
 <script>
-	const uploadResult = document.querySelector(".uploadResult");
-	
-	$("input[type=file]").on("change", (e) => {
+//	FileList.prototype.forEach = Array.prototype.forEach;
+	const uploadResult = document.querySelector(".uploadResult ul");
+	const input = document.querySelector("input[type=file]");
+	const dataTransfer = new DataTransfer();  // append된 전체 파일을 파일리스트에 세트. 파일선택옆에 총 파일 갯수를 나오게 하기 위해서
+
+	let text = ``;
+	let files  = new Array();
+	input.addEventListener("change", (e) => {
 		let formData = new FormData();
-		const files  = Array.from(e.target.files);
-		files.forEach((file) => {
+		tmpfiles  = Array.from(e.target.files);      // e.target.files 현재 선택된 파일 리스트만 보관
+		tmpfiles.forEach((file) => {
+			files.push(file);                        // 선택된 파일들을 append하기 위해서
+			const dataTransfer = new DataTransfer();  // append된 전체 파일을 파일리스트에 세트. 파일선택옆에 총 파일 갯수를 나오게 하기 위해서 
+			files.forEach(file => dataTransfer.items.add(file)); // 추가한 파일까지 총 파일 갯수를 "파일선택" 옆에 보여주기 위해 매번 전체 파일 옮겨주기
+			input.files = dataTransfer.files;
 			formData.append("multipartFiles",file);
 		});
 		
+//        e.target.files.forEach(file => {
+//            files.push(file);
+//            formData.append("multipartFiles", file);
+//        });
+
 		$.ajax({
 			url : "/files/upload",
 			type : "post",
@@ -109,20 +124,44 @@
 			processData : false, // file전송시 :: FormData 객체를 문자열로 변환하지 않음
 			contentType : false, // file전송시 :: Content-Type 헤더를 브라우저에서 자동 생성
 			success : function(files){
-				let text = ``;
-				files.forEach((file) => {
-				// URL 인코딩 추가
-				const encodedFilePath = encodeURIComponent(`${file.fileUploadPath}/t_${file.fileUuid}_${file.fileName}`);
-
-				text += `<li>
-				    <img src="/files/display?filePathName=${encodedFilePath}">
-				</li>`;
+				files.forEach((file, index) => {
+			            text += `<li data-index=${index}>`;        // 파일 삭제 관리를 위한 index
+						text += `<image src="/images/cancel.png" class="file-cancel" width="25" style="position: absolute; right: 0; cursor: pointer;">`; 
+					if (file.fileIsImage) {
+						// URL 인코딩 추가
+						const encodedFilePath = encodeURIComponent(`${file.fileUploadPath}/t_${file.fileUuid}_${file.fileName}`);
+						text += `<img src="/files/display?filePathName=${encodedFilePath}">&nbsp;&nbsp;`;
+					} else {
+						text += `<img src="/images/attach.png" width="100">`;
+					}
+					`</li>`
 				})
 				uploadResult.innerHTML = text;
 			},	
 		});
 		
 	});
+	
+	const uls = document.querySelectorAll("ul");
+	uls.forEach((ul)=> { 
+		ul.addEventListener("click", function(e){
+			if (e.target.matches(".file-cancel")){
+				const li = e.target.closest("li");
+				if (li){
+					const index = parseInt(li.dataset.index, 10);  // 삭제할 li의 index 가져오기
+					li.remove();                              // 화면에서 삭제하기 
+					if (files.length == 1){                   // 마지막 한개가 삭제가 안되서 
+						files = [];
+					}
+					files.splice(index,1);                    // 파일 목록에서 삭제하기
+					const dataTransfer = new DataTransfer();  // 최종 파일 목록을 파일리스트에 세트. 파일선택옆에 최종 파일 갯수를 나오게 하기 위해서
+					files.forEach(file => dataTransfer.items.add(file)); // 삭제한 목록을 화면 "파일선택" 옆에 보여주기
+					input.files = dataTransfer.files;
+				}
+			}
+		});
+	});
+			
 </script>
 
 </html>
