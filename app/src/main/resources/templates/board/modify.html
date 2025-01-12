@@ -8,24 +8,24 @@
     <title>게시글 수정</title>
     <link rel="stylesheet" href="/css/main.css" />
     <style>
-        .uploadResult ul {
-            display: flex;
-            list-style: none;
-        }
+	.uploadResult ul {
+	    display: flex;
+	    list-style: none;
+	}
 
-        .uploadResult ul li {
-            position: relative;
-        }
+	.uploadResult ul li {
+	    position: relative;
+	}
 
-        .uploadResult ul li span {
-            display: block;
-            position: absolute;
-            right: 10px;
-            top: -25px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1.5rem;
-        }
+	.uploadResult ul li span {
+	    display: block;
+	    position: absolute;
+	    right: 10px;
+	    top: -25px;
+	    cursor: pointer;
+	    font-weight: bold;
+	    font-size: 1.5rem;
+	}
     </style>
 </head>
 <body class="is-preload">
@@ -46,7 +46,7 @@
             <div class="content">
                 <div class="form">
 <!--                    <form method="post" id="updateForm" enctype="multipart/form-data">-->
-                    <form th:action="@{/board/modify}" method="post" id="updateForm" th:object="${boardVO}">
+                    <form th:action="@{/board/modify}" method="post" id="updateForm" th:object="${boardDto}">
 	                     <!-- 다른곳으로 분기했다가 돌아왔을 때, 이전 페이지, 검색조건을 유지하도록 
 		                 (page, type, keyWord 추가-->
 						 <input type="hidden" name="page" th:value="${criteria.page}" />
@@ -80,11 +80,9 @@
                                 </div>
                             </div>
                         </div>
-                        <ul class="actions special">
-                            <li>
-                                <input type="submit" class="button" value="수정 완료"/>
-                            </li>
-                        </ul>
+						<ul class="actions special">
+						    <li><input type="button" class="button register-button" value="수정 완료" /></li>
+						</ul>
                     </form>
                 </div>
             </div>
@@ -98,4 +96,187 @@
 <script src="/js/breakpoints.min.js"></script>
 <script src="/js/util.js"></script>
 <script src="/js/main.js"></script>
+<script th:inline="javascript">  //  th:inline="javascript가 아주 중요
+	// Thymeleaf에서 서버 측 객체인 boardDto.files를 JavaScript 배열로 변환하려는 구문
+	let files = /*[[${boardDto.files}]]*/ []; 	
+	// File 객체로 변환하여 files 배열에 추가. 서버에서 온 데이터는 file 객체가 아님.
+	let arrFiles = new Array();
+//	let arrFiles = Array.from(files).map(file => { // dataTransfer를 사용하기 위해 file 객체로 변환
+//	    return new File([file], file.fileName, { type: file.fileType || 'application/octet-stream' });
+//		// 'application/octet-stream'은 정확한 MIME 타입을 사용하는 것이 좋음. 
+//		// 이미지 파일: image/png, image/jpeg 텍스트 파일: text/plain  PDF 파일: application/pdf Excel 파일: application/vnd.ms-excel
+//	});
+	const uploadResult = document.querySelector(".uploadResult ul");
+	const input = document.querySelector("input[type=file]");
+	const dataTransfer = new DataTransfer();  // array에 들어 있는 파일목록을 input 파일리스트로 옮기기위한 객체
+	 
+	showThumbNail();   // 서버로 부터 받은 파일 최초 조회
+	
+	function showThumbNail(){
+		let text = ``;
+		files.forEach((file, index) => {
+			// MIME 타입 넣어주기
+			// MIME 타입을 결정하는 함수
+			const determineMimeType = (fileName) => {
+			    const extension = fileName.split('.').pop().toLowerCase();
+			    switch (extension) {
+			        case 'png': return 'image/png';
+			        case 'jpg':
+			        case 'jpeg': return 'image/jpeg';
+			        case 'gif': return 'image/gif';
+					default: return 'application/octet-stream';
+//			        case 'pdf': return 'application/pdf';
+//			        case 'txt': return 'text/plain';
+//			        case 'csv': return 'text/csv';
+//			        case 'xls': return 'application/vnd.ms-excel';
+//			        case 'xlsx': return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+//			        case 'doc': return 'application/msword';
+//			        case 'docx': return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+//			        default: return 'application/octet-stream';
+			    }
+			};
+
+			// 파일의 MIME 타입 설정
+			const mimeType = file.fileType || determineMimeType(file.fileName);
+
+			// File 객체 생성 및 arrFiles 배열에 추가
+			arrFiles.push(new File([file], file.fileName, { type: mimeType }));
+			
+			// 파일 삭제를 위한 index, 서버로 전달할 정보 세팅
+			// file-name 가 dataset에서는 카멜표기법(fileName)으로 변경됨
+			text += `<li data-index=${index} class="uploadFile"     
+			data-file-name="${file.fileName}" data-file-upload-path="${file.fileUploadPath}" 
+			data-file-uuid="${file.fileUuid}" data-file-size="${file.fileSize}" 
+			data-file-is-image="${file.fileIsImage}" 
+			>`;        
+			
+			text += `<img src="/images/cancel.png" class="file-cancel" width="25" style="position: absolute; right: 0; cursor: pointer;">`; 
+			if (file.fileIsImage) {
+				// URL 인코딩 추가
+				const encodedFilePath = encodeURIComponent(`${file.fileUploadPath}/t_${file.fileUuid}_${file.fileName}`);
+				text += `<img src="/files/display?filePathName=${encodedFilePath}" width="100">&nbsp;&nbsp;`;
+			} else {
+				text += `<img src="/images/attach.png" width="100">`;
+			}
+			text += `</li>`;
+			
+		});
+//		console.log(text);
+		uploadResult.innerHTML = text;
+		
+		// uploadResult의 전체 HTML 구조 출력
+//		console.log(uploadResult.innerHTML);  // ul 내의 내용만 출력 (ul 내의 HTML만)
+//		console.log(uploadResult.outerHTML);  // uploadResult div 전체 구조 출력
+        
+        // 파일 갯수를 화면에 출력		
+		const dataTransfer = new DataTransfer();
+		arrFiles.forEach(file => {
+			dataTransfer.items.add(file);            // 화면의 파일선택 옆에 최종 갯수를 나오게 하기 위해서 
+		}); 
+		input.files = dataTransfer.files;            // 화면의 파일선택 옆에 최종 갯수를 나오게 하기 위해서
+
+	}
+	
+	
+    const registerButton = document.querySelector(".register-button");
+	const form = document.querySelector("#updateForm");
+	console.log("registerButton 직전");
+	registerButton.addEventListener("click", function(){
+		let text = "";
+		console.log("registerButton 들어옴");
+		uploadResult.querySelectorAll(".uploadFile").forEach((li, index) => {
+		// DOM 요소가 동적으로 생성되는 경우, 부모 요소에 이벤트를 위임한다.
+			console.log(li.dataset);
+			const fileIsImage = li.dataset.fileIsImage === "true" ;    // 문자열을 boolean 값으로 변환
+			text += `
+			<input type="hidden" name="files[${index}].fileName"       value="${li.dataset.fileName}">
+			<input type="hidden" name="files[${index}].fileUploadPath" value="${li.dataset.fileUploadPath}">
+			<input type="hidden" name="files[${index}].fileUuid"       value="${li.dataset.fileUuid}">
+			<input type="hidden" name="files[${index}].fileSize"       value="${li.dataset.fileSize}">
+			<input type="hidden" name="files[${index}].fileIsImage"    value="${li.dataset.fileIsImage}">
+					 `;
+		});
+		form.insertAdjacentHTML("beforeend", text)
+//		form.append(text);    //form은 텍스트 형식을 받는데, text는 html 방식이라서 오류가 남
+		console.log(form);
+		form.submit();
+    });
+
+	input.addEventListener("change", (e) => {
+		let text ="";                                 // 새로 들어올 때 마다 클리어
+		tmpfiles  = Array.from(e.target.files);       // e.target.files는 현재 선택된 파일 리스트만 보관
+
+		const formData = new FormData();
+		const dataTransfer = new DataTransfer();  
+		tmpfiles.forEach((file) => {
+			arrFiles.push(file);                         // 선택된 파일들을 append하기 위해서 array로 push			
+		});
+
+		arrFiles.forEach(file => {
+			dataTransfer.items.add(file);            // 화면의 파일선택 옆에 최종 갯수를 나오게 하기 위해서 
+			formData.append("multipartFiles",file);  // 서버에 보낼 파일리스트
+		}); 
+		input.files = dataTransfer.files;            // 화면의 파일선택 옆에 최종 갯수를 나오게 하기 위해서
+		console.log(tmpfiles);
+		console.log(files);
+		console.log(input.files);
+		
+		$.ajax({
+			url : "/files/upload",
+			type : "post",
+			data : formData,
+			processData : false, // file전송시 :: FormData 객체를 문자열로 변환하지 않음
+			contentType : false, // file전송시 :: Content-Type 헤더를 브라우저에서 자동 생성
+			success : function(files){
+				files.forEach((file, index) => {
+					// 파일 삭제를 위한 index, 서버로 전달할 정보 세팅
+					// file-name 가 dataset에서는 카멜표기법(fileName)으로 변경됨
+			        text += `<li data-index=${index} class="uploadFile"     
+					data-file-name="${file.fileName}" data-file-upload-path="${file.fileUploadPath}" 
+					data-file-uuid="${file.fileUuid}" data-file-size="${file.fileSize}" 
+					data-file-is-image="${file.fileIsImage}" 
+					>`;        
+					
+					text += `<img src="/images/cancel.png" class="file-cancel" width="25" style="position: absolute; right: 0; cursor: pointer;">`; 
+					if (file.fileIsImage) {
+						// URL 인코딩 추가
+						const encodedFilePath = encodeURIComponent(`${file.fileUploadPath}/t_${file.fileUuid}_${file.fileName}`);
+						text += `<img src="/files/display?filePathName=${encodedFilePath}">&nbsp;&nbsp;`;
+					} else {
+						text += `<img src="/images/attach.png" width="100">`;
+					}
+					text += `</li>`;
+				})
+				console.log(text);
+				uploadResult.innerHTML = text;
+			}	
+		});
+		
+	});
+	
+	console.log("arrFile"+arrFiles);
+	const uls = document.querySelectorAll("ul");
+	uls.forEach((ul)=> { 
+		ul.addEventListener("click", function(e){
+			if (e.target.matches(".file-cancel")){
+				const li = e.target.closest("li");
+				if (li){
+				    console.log(arrFiles);
+					const index = parseInt(li.dataset.index, 10);  // 삭제할 li의 index 가져오기
+					if (arrFiles.length == 1){                        // 마지막 한개가 삭제가 안되서 강제로 clear
+					    arrFiles.splice(index,1);                     // 파일 목록에서 삭제하기
+						arrFiles = [];                                
+					} else {					        
+					    arrFiles.splice(index,1);                     // 파일 목록에서 삭제하기
+					}                
+					li.remove();                                   // 화면에서 삭제하기 
+					const dataTransfer = new DataTransfer();       // 최종 파일 목록을 파일리스트에 세트. 파일선택옆에 최종 파일 갯수를 나오게 하기 위해서
+					arrFiles.forEach(file => dataTransfer.items.add(file)); // 삭제한 목록을 화면 "파일선택" 옆에 보여주기
+					input.files = dataTransfer.files;
+				}
+			}
+		});
+	});
+
+</script>
 </html>

@@ -1,6 +1,7 @@
 package com.example.app.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.example.app.domain.dto.BoardDto;
 import com.example.app.domain.dto.Criteria;
 import com.example.app.domain.dto.Search;
 import com.example.app.domain.vo.BoardVO;
@@ -38,15 +40,18 @@ public class BoardController {
 	
 	@GetMapping("/write")
 	public String getBoardWrite(Search search, Criteria criteria, Model model) {
-		model.addAttribute("boardVO", new BoardVO());
+		model.addAttribute("boardDto", new BoardDto());
 		return "/board/write";
 	}
 	
 	@PostMapping("/write")
-	public String postBoardWrite(@ModelAttribute("boardVO") BoardVO boardVO, 
+	public String postBoardWrite(@ModelAttribute("boardDto") BoardDto boardDto, 
 								 RedirectAttributes redirectAttributes) {
+
+		System.out.println("insert controller postBoardWrite");
+		
 		try {
-			boardService.postBoardWrite(boardVO);
+			boardService.postBoardWrite(boardDto);
 			return "redirect:/board/list";
 		} catch (InvalidInputException e) {
 			redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
@@ -54,25 +59,31 @@ public class BoardController {
 		}
 	}
 	
-	@GetMapping(value = {"read", "modify"})  // 두 url을 동시에 처리. return이 없으면 url 맞춰서 read.html, modify.html로 맞춰서 호출
+	@GetMapping(value = {"/read", "/modify"})  // 두 url을 동시에 처리. return이 없으면 url 맞춰서 read.html, modify.html로 맞춰서 호출
 	                                         // modify는 post 처리만 하도록 수정했음
 	public void getBoardReadBoardNO(@RequestParam("boardNo") long boardNo, 
 									Search search, Criteria criteria, Model model) {
-		BoardVO boardVO = boardService.getBoardReadBoardNo(boardNo);
-		model.addAttribute("boardVO", boardVO);
+		BoardDto boardDto = boardService.getBoardReadBoardNo(boardNo);
+		model.addAttribute("boardDto", boardDto);
+		if (boardDto.getFiles() != null) {
+			System.out.println("controller getBoardReadBoardNo"+boardDto.getFiles().stream()
+					.map(file -> file.toString()).collect(Collectors.joining(", ")));
+		} else {
+			System.out.println("controller getBoardReadBoardNo boardDto.getFiles()는 null");
+		}
 	}
 	
 	@PostMapping("/modify")
-	public String postBoardModify(@ModelAttribute("boardVO") BoardVO boardVO, 
+	public String postBoardModify(@ModelAttribute("boardVO") BoardDto boardDto, 
 							Search search, Criteria criteria, 
 							RedirectAttributes redirectAttributes ) {
-		
-		boardService.postBoardModify(boardVO);
-		
-		log.info("boardNo "+boardVO.getBoardNo()+"page "+criteria.getPage()+"type "+search.getType()+"keyWord"+search.getKeyWord());
+
+		System.out.println("insert controller postBoardModify");
+		System.out.println("insert controller postBoardModify");
+		boardService.postBoardModify(boardDto);
 		
 		 // 쿼리 파라미터로 데이터 전달 /board/read?boardNo=123&page=1&type=w&keyWord=example
-	    redirectAttributes.addAttribute("boardNo", boardVO.getBoardNo());
+	    redirectAttributes.addAttribute("boardNo", boardDto.getBoardNo());
 	    redirectAttributes.addAttribute("page", criteria.getPage());
 	    redirectAttributes.addAttribute("type", search.getType());
 	    redirectAttributes.addAttribute("keyWord", search.getKeyWord());

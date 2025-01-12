@@ -8,7 +8,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,26 +25,29 @@ import net.coobird.thumbnailator.Thumbnailator;
 @RequiredArgsConstructor
 @Slf4j
 public class FileServiceImpl implements FileService{
-
-	private final FileMapper fileMapper;
+	
+    @Value("${file.root.path}")  // application.properties에서 경로 설정 "C:/KoreaIT/images/"
+    private String rootPath;
 
 	@Override
 	public List<FileVO> postFilesUPload(List<MultipartFile> multipartFiles) 
 			throws IllegalStateException, IOException {
+//		System.out.println("file service 여기 여기 여기 sysout");
 		
 		List<FileVO> files = new ArrayList<>();
 		
-		String rootPath = "C:/KoreaIT/images";
 		String datePath = datePath();
 		File uploadPath = new File(rootPath, datePath);
 		if (!uploadPath.exists()) {
 			uploadPath.mkdirs();
 		}
-		
+
 		for (MultipartFile multipartFile : multipartFiles) {
 			
 			String fileName = multipartFile.getOriginalFilename();
-			String fileSize = String.format("%.2f", multipartFile.getSize() / 1024.0);
+			// 서버에 올라와 있는 파일(이미 /1024되 파일)을 다시 보여주고 올릴때 계속 나눠줘야 함
+//			String fileSize = String.format("%.2f", multipartFile.getSize() / 1024.0); 
+			String fileSize = String.format("%d B", multipartFile.getSize());
 			String uuid = UUID.randomUUID().toString();
 			File save = new File(uploadPath, uuid+"_"+fileName);
 			multipartFile.transferTo(save);
@@ -51,6 +56,7 @@ public class FileServiceImpl implements FileService{
 			boolean isImage = multipartFile.getContentType().startsWith("image");
 			if (isImage) {
 				FileOutputStream out = new FileOutputStream(new File(uploadPath, "t_"+uuid+"_"+fileName));
+				System.out.println("파일 :: "+fileName+" "+fileSize+" "+isImage);
 				Thumbnailator.createThumbnail(multipartFile.getInputStream(), out, 100, 100);
 				out.close();				
 			}
@@ -65,6 +71,10 @@ public class FileServiceImpl implements FileService{
 			files.add(fileVO);
 			
 		}
+		
+//		System.out.println("file service 여기 여기 여기 sysout: " + files.stream()
+//	    .map(file -> file.toString()) // FileVO 객체의 toString() 사용
+//	    .collect(Collectors.joining(", ")));
 		
 		return files;
 	}

@@ -1,5 +1,6 @@
 package com.example.app.domain.vo;
 
+import groovy.transform.ToString;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,4 +17,13 @@ public class FileVO {
 	private String  fileSize;
 	private boolean fileIsImage;
 	private long    boardNo;
+	
+	@Override
+	public String toString() {
+		return "FileVO [fileNo=" + fileNo + ", fileName=" + fileName + ", fileUploadPath=" + fileUploadPath
+				+ ", fileUuid=" + fileUuid + ", fileSize=" + fileSize + ", fileIsImage=" + fileIsImage + ", boardNo="
+				+ boardNo + "]";
+	}
+	
+	
 }

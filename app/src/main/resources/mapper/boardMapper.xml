@@ -81,7 +81,7 @@
 	]]>   -->
 	</select>
 	
-	<select id="getBoardReadBoardNo" resultType="BoardVO">
+	<select id="getBoardReadBoardNo" resultType="BoardDto">
 	<![CDATA[
 		SELECT 
 				BOARD_NO, 
@@ -95,6 +95,21 @@
 	]]>
 	</select>
 	
+	<select id="getFileReadBoardNo" resultType="FileVO">
+	<![CDATA[
+		SELECT 
+				FILE_NO, 
+				FILE_NAME, 
+				FILE_UPLOAD_PATH, 
+				FILE_UUID, 
+				FILE_SIZE, 
+				FILE_IS_IMAGE, 
+				BOARD_NO
+		FROM TBL_FILE
+		WHERE   BOARD_NO = ${boardNo}
+	]]>
+	</select>
+	
 	<select id="getTotal" resultType="int">
 	<![CDATA[
 		SELECT COUNT(*) AS total
@@ -103,7 +118,8 @@
 		<include refid="search"/>
 	</select>
 	
-	<insert id="postBoardWrite">
+	<insert id="postBoardWrite" useGeneratedKeys="true" keyProperty="boardNo" keyColumn="BOARD_NO"> 
+	<!--키값을 Dto의 boardNo로 return 함-->
 	<![CDATA[
 		INSERT INTO TBL_BOARD
 				(BOARD_NO, 
@@ -118,6 +134,27 @@
 	]]>
 	</insert>
 	
+	<insert id="postFileWrite">
+	<![CDATA[
+		INSERT INTO TBL_FILE
+			(FILE_NO, 
+			 FILE_NAME, 
+			 FILE_UPLOAD_PATH, 
+			 FILE_UUID, 
+			 FILE_SIZE, 
+			 FILE_IS_IMAGE, 
+			 BOARD_NO)
+		VALUES
+			(SEQ_TBL_FILE.NEXTVAL,
+			 #{fileName},
+			 #{fileUploadPath},
+			 #{fileUuid},
+			 #{fileSize},
+			 #{fileIsImage},
+			 #{boardNo})
+	]]>
+	</insert>
+	
 	<update id="postBoardModify">
 	<![CDATA[
 		UPDATE TBL_BOARD
@@ -127,6 +164,13 @@
 		WHERE   BOARD_NO          = #{boardNo}
 	]]>
 	</update>
+	
+	<delete id="postFileDelete">
+	<![CDATA[
+		DELETE FROM TBL_FILE
+		WHERE BOARD_NO = #{boardNo}
+	]]>
+	</delete>
 	
 	<delete id="postBoardRemove">
 	<![CDATA[

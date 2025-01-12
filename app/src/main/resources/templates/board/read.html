@@ -8,23 +8,45 @@
     <title>게시글 상세보기</title>
     <link rel="stylesheet" href="/css/main.css" />
     <style>
-        .uploadResult ul {
-            display: flex;
-            list-style: none;
-        }
-        h4 {
-            margin: 0;
-        }
-        .line{
-            border-bottom: 1px solid #ff8b77;
-        }
-        p {
-            margin: 0;
-        }
+		.uploadResult ul {
+		    display: flex;
+		    list-style: none;
+		    flex-wrap: wrap;          /* 줄 바꿈 방지 */
+		    gap: 10px;                /* 항목 간 간격 */
+		}
 
-        textarea {
-            resize: none;
-        }
+		.uploadResult ul li {
+		    position: relative;
+		    width: 120px;             /* li의 너비 설정 */
+		    text-align: center;       /* 텍스트를 중앙에 정렬 */
+		}
+
+		.uploadResult ul li img {
+		    width: 100px;             /* 이미지 너비 설정 */
+		    height: 100px;            /* 이미지 높이 설정 */
+		    object-fit: cover;        /* 이미지 비율에 맞게 크기 조정 */
+		}
+
+		.uploadResult ul li p {
+		    font-size: 0.7rem;
+		    overflow: hidden;
+		    text-overflow: ellipsis;
+		    white-space: nowrap;      /* 텍스트가 한 줄로 표시되게 설정 */
+		    width: 100%;              /* p의 너비 설정 */
+		}
+	h4 {
+	    margin: 0;
+	}
+	.line{
+	    border-bottom: 1px solid #ff8b77;
+	}
+	p {
+	    margin: 0;
+	}
+
+	textarea {
+	    resize: none;
+	}
     </style>
 </head>
 <body class="is-preload">
@@ -43,7 +65,7 @@
 				(page=${criteria.page}, type=${search.type}, keyWord=${search.keyword}) 추가-->
             <h3><a class="list button small" th:href="@{/board/list(page=${criteria.page}, type=${search.type}, keyWord=${search.keyWord})}">목록 보기</a></h3>
             <div class="content">
-                <di class="form" th:object="${boardVO}">
+                <di class="form" th:object="${boardDto}">
                    <form th:action="@{/board/remove(boardNo=*{boardNo})}" method="post">			  
                         <div class="fields">
                             <div class="field">
@@ -114,24 +136,54 @@
 <script src="/js/main.js"></script>
 <script th:inline="javascript">
 /*
-	let boardNo = "[[${boardVO.boardNo}]]";
+	let boardNo = "[[${boardDto.boardNo}]]";
 
 	function modify(){
 	    location.href = "/board/modify?boardNo=" + boardNo;
 	}	
 */	
-let boardNo = [[${boardVO.boardNo}]];
+let boardNo = [[${boardDto.boardNo}]];
 let page = [[${criteria.page}]];
 let type = [[${search.type}]];
 let keyWord = [[${search.keyWord}]];
+const uploadResult = document.querySelector(".uploadResult ul");
+let files = /*[[${boardDto.files}]]*/ [];
+
+showThumbNail();
 
 function modify() {
-	console.log("function inininin");
     location.href = "/board/modify?boardNo=" + boardNo + 
                     "&page=" + page + 
                     "&type=" + type + 
                     "&keyWord=" + encodeURIComponent(keyWord);
 } 
 
+function showThumbNail(){
+	
+	let text = ``;	
+	files.forEach((file, index) => {
+		let fileName = file.fileName.replace("-", "_");console.log("state 2");		
+		// URL 인코딩 추가
+//		const encodedFilePath = encodeURIComponent(`${file.fileUploadPath}/${file.fileUuid}_${file.fileName}`);
+		text += `<li >`
+			    text += `<a href="/files/download?filePath=${file.fileUploadPath}/${file.fileUuid}_${file.fileName}">`
+			    text += `    <div style="width: 100px; height: 100px">`
+							
+		if (file.fileIsImage) {
+			// URL 인코딩 추가
+			const encodedFilePath = encodeURIComponent(`${file.fileUploadPath}/t_${file.fileUuid}_${file.fileName}`);
+			text += `<img src="/files/display?filePathName=${encodedFilePath}">`;
+		} else {
+			text += `<img src="/images/attach.png" width="100">`;
+		};
+		text += `</div>
+		            </a>
+		            <p style="font-size: 0.7rem;width: 100px;overflow: hidden;text-overflow: ellipsis;">${fileName}(${file.fileSize}KB)</p>
+		        </li>`
+	});
+	console.log(text);// uploadResult에 동적으로 파일 항목 추가
+	uploadResult.insertAdjacentHTML('beforeend', text);
+
+};
 </script>
 </html>

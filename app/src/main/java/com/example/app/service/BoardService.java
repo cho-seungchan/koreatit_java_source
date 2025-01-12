@@ -2,6 +2,7 @@ package com.example.app.service;
 
 import java.util.List;
 
+import com.example.app.domain.dto.BoardDto;
 import com.example.app.domain.dto.Criteria;
 import com.example.app.domain.dto.Search;
 import com.example.app.domain.vo.BoardVO;
@@ -11,11 +12,11 @@ public interface BoardService {
 
 	List<BoardVO> getBoardList(Search search, Criteria criteria);
 
-	void postBoardWrite(BoardVO boardVO) throws InvalidInputException;
+	void postBoardWrite(BoardDto boardDto) throws InvalidInputException;
 
-	BoardVO getBoardReadBoardNo(long boardNo);
+	BoardDto getBoardReadBoardNo(long boardNo);
 
-	void postBoardModify(BoardVO boardVO);
+	void postBoardModify(BoardDto boardDto);
 
 	void postBoardRemove(BoardVO boardVO);
 
