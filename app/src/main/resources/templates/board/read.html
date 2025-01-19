@@ -162,7 +162,7 @@ function showThumbNail(){
 	
 	let text = ``;	
 	files.forEach((file, index) => {
-		let fileName = file.fileName.replace("-", "_");console.log("state 2");		
+//		let fileName = file.fileName.replace("-", "_");console.log("state 2");		
 		// URL 인코딩 추가
 //		const encodedFilePath = encodeURIComponent(`${file.fileUploadPath}/${file.fileUuid}_${file.fileName}`);
 		text += `<li >`
@@ -178,10 +178,10 @@ function showThumbNail(){
 		};
 		text += `</div>
 		            </a>
-		            <p style="font-size: 0.7rem;width: 100px;overflow: hidden;text-overflow: ellipsis;">${fileName}(${file.fileSize}KB)</p>
+		            <p style="font-size: 0.7rem;width: 100px;overflow: hidden;text-overflow: ellipsis;">${file.fileName}(${file.fileSize}B)</p>
 		        </li>`
 	});
-	console.log(text);// uploadResult에 동적으로 파일 항목 추가
+//	console.log(text);// uploadResult에 동적으로 파일 항목 추가
 	uploadResult.insertAdjacentHTML('beforeend', text);
 
 };

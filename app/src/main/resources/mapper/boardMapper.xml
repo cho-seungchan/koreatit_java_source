@@ -110,6 +110,29 @@
 	]]>
 	</select>
 	
+	<select id="findFile" resultType="int">
+		SELECT  COUNT(*)
+    	FROM    TBL_FILE
+    	WHERE   FILE_NAME         = #{fileName}
+	  	 AND    FILE_UPLOAD_PATH  = #{fileUploadPath} 
+		 AND    FILE_UUID         = #{fileUuid}
+	</select>
+	
+	<select id="yesterFilesInDB" resultType="FileVO">	
+	<![CDATA[
+		SELECT 
+				FILE_NO, 
+				FILE_NAME, 
+				FILE_UPLOAD_PATH, 
+				FILE_UUID, 
+				FILE_SIZE, 
+				FILE_IS_IMAGE, 
+				BOARD_NO
+		FROM TBL_FILE
+		WHERE   FILE_UPLOAD_PATH = TO_CHAR(SYSDATE - 1, 'YYYY/MMDD') /* -1 은 어제 날짜 */
+	]]>
+	</select>
+	
 	<select id="getTotal" resultType="int">
 	<![CDATA[
 		SELECT COUNT(*) AS total

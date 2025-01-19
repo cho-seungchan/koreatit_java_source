@@ -47,12 +47,12 @@ public class BoardServiceImpl implements BoardService {
 		
 		boardMapper.postBoardWrite(boardDto);                 // 게시글 등록
 
-		if (boardDto.getFiles() != null) {
-			System.out.println("service postBoardWrite"+boardDto.getFiles().stream()
-					.map(file -> file.toString()).collect(Collectors.joining(", ")));
-		} else {
-			System.out.println("service postBoardWrite boardDto.getFiles()는 null");
-		}
+//		if (boardDto.getFiles() != null) {
+//			System.out.println("service postBoardWrite"+boardDto.getFiles().stream()
+//					.map(file -> file.toString()).collect(Collectors.joining(", ")));
+//		} else {
+//			System.out.println("service postBoardWrite boardDto.getFiles()는 null");
+//		}
 		
 		if (boardDto.getFiles() != null && !boardDto.getFiles().isEmpty()) {  // 파일 등록
 			for (FileVO fileVO : boardDto.getFiles()) {
@@ -87,20 +87,18 @@ public class BoardServiceImpl implements BoardService {
 	@Transactional
 	public void postBoardModify(BoardDto boardDto) {
 
-		System.out.println(" service postBoardModify  file insert");
 		boardMapper.postBoardModify(boardDto);
 		boardMapper.postFileDelete(boardDto);
 		
-		if (boardDto.getFiles() != null) {
-			System.out.println("service postBoardModify  "+boardDto.getFiles().stream()
-					.map(file -> file.toString()).collect(Collectors.joining(", ")));
-		} else {
-			System.out.println("service postBoardModify boardDto.getFiles()는 null");
-		}
+//		if (boardDto.getFiles() != null) {
+//			System.out.println("service postBoardModify  "+boardDto.getFiles().stream()
+//					.map(file -> file.toString()).collect(Collectors.joining(", ")));
+//		} else {
+//			System.out.println("service postBoardModify boardDto.getFiles()는 null");
+//		}
 		
 		if (boardDto.getFiles() != null && !boardDto.getFiles().isEmpty()) {
 			for (FileVO fileVO : boardDto.getFiles()) {
-				System.out.println(" service postBoardModify  file insert");
 				fileVO.setBoardNo(boardDto.getBoardNo());
 				boardMapper.postFileWrite(fileVO);
 			}

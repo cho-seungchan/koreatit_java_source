@@ -9,7 +9,9 @@ import com.example.app.domain.vo.FileVO;
 
 public interface FileService {
 
-	List<FileVO> postFilesUPload(List<MultipartFile> multipartFiles) 
+	List<FileVO> postFilesUPload(List<MultipartFile> multipartFiles, String existingFilesJson) 
 			throws IllegalStateException, IOException;
+
+	List<FileVO> yesterFilesInDB();
 
 }

@@ -99,8 +99,21 @@
 <script th:inline="javascript">  //  th:inline="javascript가 아주 중요
 	// Thymeleaf에서 서버 측 객체인 boardDto.files를 JavaScript 배열로 변환하려는 구문
 	let files = /*[[${boardDto.files}]]*/ []; 	
+//	files.forEach((file, index) => {
+//	  console.log("서버에서 받은 파일")
+//	  console.log(`File ${index + 1}:`);
+//	  console.log("fileNo:", file.fileNo);
+//	  console.log("fileName:", file.fileName);
+//	  console.log("fileUploadPath:", file.fileUploadPath);
+//	  console.log("fileUuid:", file.fileUuid);
+//	  console.log("fileSize:", file.fileSize);
+//	  console.log("fileIsImage:", file.fileIsImage);
+//	  console.log("boardNo:", file.boardNo);
+//	});
+//	
 	// File 객체로 변환하여 files 배열에 추가. 서버에서 온 데이터는 file 객체가 아님.
 	let arrFiles = new Array();
+	const fileMap = new Map();
 //	let arrFiles = Array.from(files).map(file => { // dataTransfer를 사용하기 위해 file 객체로 변환
 //	    return new File([file], file.fileName, { type: file.fileType || 'application/octet-stream' });
 //		// 'application/octet-stream'은 정확한 MIME 타입을 사용하는 것이 좋음. 
@@ -109,7 +122,7 @@
 	const uploadResult = document.querySelector(".uploadResult ul");
 	const input = document.querySelector("input[type=file]");
 	const dataTransfer = new DataTransfer();  // array에 들어 있는 파일목록을 input 파일리스트로 옮기기위한 객체
-	 
+
 	showThumbNail();   // 서버로 부터 받은 파일 최초 조회
 	
 	function showThumbNail(){
@@ -141,13 +154,46 @@
 
 			// File 객체 생성 및 arrFiles 배열에 추가
 			arrFiles.push(new File([file], file.fileName, { type: mimeType }));
+			// formData를 만들기 위한 fileMap에도 추가
+			fileMap.set(file.fileName, {
+			    file: file, 
+			    isNew: false,
+			    fileName: file.fileName,  // 추가: 기존 파일 이름
+			    fileUploadPath: file.fileUploadPath || "default/path",  // 추가: 중간 path
+			    fileUuid: file.fileUuid || "default-uuid",  // 추가: 서버에서 관리하는 UUID
+			    fileSize: file.fileFileSize || 0,  // 추가: 파일 size
+			    fileIsImage: file.fileIsImage, // 파일이 이미지인지 여부
+				boardNo: file.boardNo // 게시판 번호
+			});
+//			console.log("filemap jason  "+file.fileName+" "+
+//			file.fileUploadPath+" "+file.fileUuid+" "+
+//			file.fileFileSize+" "+file.fileIsImage+" "+file.boardNo)
 			
+//			console.log("썸네일 출력시 fileMap")
+//			fileMap.forEach((item, key) => {
+//			    console.log(`파일 이름: ${key}`);
+//			    console.log(`isNew: ${item.isNew}`);
+//			    console.log(`파일 객체: `, item.file);
+//			});
+						
+//			arrFiles.forEach((file, index) => {
+//				console.log("arrfile에 넣은 파일")
+//				console.log(`File ${index + 1}:`);
+//				console.log("fileNo:", file.fileNo);
+//				console.log("fileName:", file.fileName);
+//				console.log("fileUploadPath:", file.fileUploadPath);
+//				console.log("fileUuid:", file.fileUuid);
+//				console.log("fileSize:", file.fileSize);
+//				console.log("fileIsImage:", file.fileIsImage);
+//				console.log("boardNo:", file.boardNo);
+//			});
+
 			// 파일 삭제를 위한 index, 서버로 전달할 정보 세팅
 			// file-name 가 dataset에서는 카멜표기법(fileName)으로 변경됨
 			text += `<li data-index=${index} class="uploadFile"     
 			data-file-name="${file.fileName}" data-file-upload-path="${file.fileUploadPath}" 
 			data-file-uuid="${file.fileUuid}" data-file-size="${file.fileSize}" 
-			data-file-is-image="${file.fileIsImage}" 
+			data-file-is-image="${file.fileIsImage} data-board-no="${file.boardNo}" 
 			>`;        
 			
 			text += `<img src="/images/cancel.png" class="file-cancel" width="25" style="position: absolute; right: 0; cursor: pointer;">`; 
@@ -171,22 +217,19 @@
         // 파일 갯수를 화면에 출력		
 		const dataTransfer = new DataTransfer();
 		arrFiles.forEach(file => {
-			dataTransfer.items.add(file);            // 화면의 파일선택 옆에 최종 갯수를 나오게 하기 위해서 
+			dataTransfer.items.add(file);            // 화면의 파일선택 옆에 최종 갯수를 나오게 하기 위해서
+//			console.log("기존 데이타 썸네일  "+file.name); 
 		}); 
 		input.files = dataTransfer.files;            // 화면의 파일선택 옆에 최종 갯수를 나오게 하기 위해서
 
 	}
-	
-	
+		
     const registerButton = document.querySelector(".register-button");
 	const form = document.querySelector("#updateForm");
-	console.log("registerButton 직전");
 	registerButton.addEventListener("click", function(){
 		let text = "";
-		console.log("registerButton 들어옴");
 		uploadResult.querySelectorAll(".uploadFile").forEach((li, index) => {
 		// DOM 요소가 동적으로 생성되는 경우, 부모 요소에 이벤트를 위임한다.
-			console.log(li.dataset);
 			const fileIsImage = li.dataset.fileIsImage === "true" ;    // 문자열을 boolean 값으로 변환
 			text += `
 			<input type="hidden" name="files[${index}].fileName"       value="${li.dataset.fileName}">
@@ -194,33 +237,126 @@
 			<input type="hidden" name="files[${index}].fileUuid"       value="${li.dataset.fileUuid}">
 			<input type="hidden" name="files[${index}].fileSize"       value="${li.dataset.fileSize}">
 			<input type="hidden" name="files[${index}].fileIsImage"    value="${li.dataset.fileIsImage}">
+			<input type="hidden" name="files[${index}].fileIsImage"    value="${li.dataset.boardNo}">
 					 `;
 		});
 		form.insertAdjacentHTML("beforeend", text)
 //		form.append(text);    //form은 텍스트 형식을 받는데, text는 html 방식이라서 오류가 남
-		console.log(form);
+//		console.log(form);
 		form.submit();
     });
 
-	input.addEventListener("change", (e) => {
+	
+	function logFormData(formData) {
+	    console.log("FormData Content:");
+	    for (let [key, value] of formData.entries()) {
+	        console.log(`Key: ${key}, Value:`, value);
+	    }
+	}
+	
+	input.addEventListener("change", (e) => {         // "파일 선택'으로' 들어온 파일만 처리 
 		let text ="";                                 // 새로 들어올 때 마다 클리어
 		tmpfiles  = Array.from(e.target.files);       // e.target.files는 현재 선택된 파일 리스트만 보관
+		
+//		Array.from(e.target.files).forEach((file, index) => {
+//		    console.log(`파일 ${index + 1}:`);
+//		    console.log("  이름:", file.name);
+//		    console.log("  크기:", file.size, "bytes");
+//		    console.log("  타입:", file.type);
+//		    console.log("  마지막 수정:", new Date(file.lastModified));
+//		    });
+		
+		const dataTransfer = new DataTransfer();
+		
+		// 2025.1.17 ===== 기존 파일인지 신규 파일인지 구분해서 넣기 
+		tmpfiles.forEach(file => {
+		        const isExisting = arrFiles.some(item => item.file?.name === file.name);
+				
+		        if (!isExisting) {					
+					arrFiles.push(new File([file], file.name));
+					fileMap.set(file.name, { file: file, isNew: !isExisting }); // Map에 저장, 신규 여부 설정
+		        } 
+// 신규 파일들만 들어옴				
+//				else {				
+//					fileMap.set(file.fileName, {
+//					file: file, 
+//					isNew: false,
+//					fileName: file.fileName,  // 추가: 기존 파일 이름
+//					fileUploadPath: file.fileUploadPath || "default/path",  // 추가: 중간 path
+//					fileUuid: file.fileUuid || "default-uuid",  // 추가: 서버에서 관리하는 UUID
+//					fileFileSize: file.fileFileSize || 0,  // 추가: 파일 size
+//					fileFileIsImage: file.fileIsImage, // 파일이 이미지인지 여부
+//					boardNo: file.boardNo // 게시판 번호
+//					});
+//					console.log("filemap jason  "+file.fileName+" "+
+//					file.fileUploadPath+" "+file.fileUuid+" "+
+//					file.fileFileSize+" "+file.fileIsImage+" "+file.boardNo)
+//				}
+//
 
-		const formData = new FormData();
-		const dataTransfer = new DataTransfer();  
-		tmpfiles.forEach((file) => {
-			arrFiles.push(file);                         // 선택된 파일들을 append하기 위해서 array로 push			
 		});
+//		console.log("모든 파일 길이 "+arrFiles.length);
+//		arrFiles.forEach((file)=>{
+//			console.log("모든 파일  "+file.name);
+//		})
+//		
+		console.log("arrFiles의 길이: ", arrFiles.size);
+		console.log("fileMap의 길이: ", fileMap.size);
 
-		arrFiles.forEach(file => {
+//		fileMap.forEach((item, key) => {
+//		    console.log(`파일 이름: ${key}`);
+//		    console.log(`isNew: ${item.isNew}`);
+//		    console.log(`파일 객체: `, item.file);
+//		});
+
+		// 기존파일과 신규 파일을 별도 형태로 서버로 전송
+		const formData = new FormData();  // 서버로 보낼 데이타 form
+		const existingFilesArray = [];
+//		console.log("기존 신규 파일 분리시 fileMap")
+		fileMap.forEach((item, key) => {
+//			console.log(`파일 이름: ${key}`);
+//			console.log(`isNew: ${item.isNew}`);
+//			console.log(`파일 객체: `, item.file); 
+		
+		    if (item.isNew) {
+		        formData.append("multipartFiles", item.file); // 신규 파일은 multipartFiles
+//				console.log("multipartFiles   "+item.isNew)
+		    } 	else {
+//				    console.log(item.fileName+" "+item.fileUploadPath+" "+item.fileUuid+" "+item.fileSize+" "+item.fileIsImage+" "+item.boardNo);
+//			        formData.append("existingFiles", JSON.stringify([{
+					existingFilesArray.push({    // formData에 추가할 existingFilesArray 생성
+						fileName: item.fileName, // 기존 파일 이름
+						fileUploadPath: item.fileUploadPath, // 중간 path
+						fileUuid: item.fileUuid, // 서버에서 관리하는 UUID
+						fileSize: item.fileSize, // 파일 size
+						fileIsImage: item.fileIsImage, // 파일이 이미지인지 여부
+						boardNo: item.boardNo // 게시판 번호
+					});
+//				}]));
+		    }
+		});
+		if (existingFilesArray.length > 0){    // formData에 기존 file 정보를 json으로 변경해서 전송
+			formData.append("existingFiles", JSON.stringify(existingFilesArray))
+		}
+		console.log("arrFiles의 길이: ", arrFiles.size);
+		console.log("fileMap의 길이: ", fileMap.size);
+		logFormData(formData);
+
+    	arrFiles.forEach(file => {
 			dataTransfer.items.add(file);            // 화면의 파일선택 옆에 최종 갯수를 나오게 하기 위해서 
-			formData.append("multipartFiles",file);  // 서버에 보낼 파일리스트
+//			formData.append("multipartFiles",file);  // 서버에 보낼 파일리스트
 		}); 
 		input.files = dataTransfer.files;            // 화면의 파일선택 옆에 최종 갯수를 나오게 하기 위해서
-		console.log(tmpfiles);
-		console.log(files);
-		console.log(input.files);
-		
+//		console.log("서버 보내기 전");
+//		for (let i = 0; i < input.files.length; i++) {
+//		    const file = input.files[i];
+//		    console.log(`파일 이름: ${file.name}`);
+//		    console.log(`파일 크기: ${file.size} bytes`);
+//		    console.log(`파일 유형: ${file.type}`);
+//		    console.log(`파일 마지막 수정 시간: ${file.lastModifiedDate}`);
+//		    console.log('-------------------');
+//		}
+				
 		$.ajax({
 			url : "/files/upload",
 			type : "post",
@@ -228,13 +364,25 @@
 			processData : false, // file전송시 :: FormData 객체를 문자열로 변환하지 않음
 			contentType : false, // file전송시 :: Content-Type 헤더를 브라우저에서 자동 생성
 			success : function(files){
+				
+//				console.log("서버 갔다 온 뒤 ");
+//				if (Array.isArray(files)) {
+//				    files.forEach(file => {
+//				        console.log(`파일 이름: ${file.fileName}`);
+//				        console.log(`파일 경로: ${file.fileUploadPath}`);
+//				        console.log(`파일 크기: ${file.fileSize}`);
+//				        console.log(`파일 UUID: ${file.fileUuid}`);
+//				        console.log('-------------------');
+//				    });
+//				};
+
 				files.forEach((file, index) => {
 					// 파일 삭제를 위한 index, 서버로 전달할 정보 세팅
 					// file-name 가 dataset에서는 카멜표기법(fileName)으로 변경됨
 			        text += `<li data-index=${index} class="uploadFile"     
 					data-file-name="${file.fileName}" data-file-upload-path="${file.fileUploadPath}" 
 					data-file-uuid="${file.fileUuid}" data-file-size="${file.fileSize}" 
-					data-file-is-image="${file.fileIsImage}" 
+					data-file-is-image="${file.fileIsImage}" data-board-no="${file.boardNo}" 
 					>`;        
 					
 					text += `<img src="/images/cancel.png" class="file-cancel" width="25" style="position: absolute; right: 0; cursor: pointer;">`; 
@@ -247,32 +395,159 @@
 					}
 					text += `</li>`;
 				})
-				console.log(text);
+//				console.log(text);
 				uploadResult.innerHTML = text;
+//				logFormData(formData);
 			}	
 		});
 		
 	});
 	
-	console.log("arrFile"+arrFiles);
 	const uls = document.querySelectorAll("ul");
 	uls.forEach((ul)=> { 
 		ul.addEventListener("click", function(e){
+
+			console.log(ul.innerHTML);
+			
+//			fileMap.forEach((item, key) => {
+//				console.log(`파일 이름: ${key}`);
+//				console.log(`isNew: ${item.isNew}`);
+//				console.log(`파일 객체: `, item.file); 
+//			});
+			
+			
 			if (e.target.matches(".file-cancel")){
 				const li = e.target.closest("li");
 				if (li){
-				    console.log(arrFiles);
-					const index = parseInt(li.dataset.index, 10);  // 삭제할 li의 index 가져오기
-					if (arrFiles.length == 1){                        // 마지막 한개가 삭제가 안되서 강제로 clear
-					    arrFiles.splice(index,1);                     // 파일 목록에서 삭제하기
-						arrFiles = [];                                
-					} else {					        
-					    arrFiles.splice(index,1);                     // 파일 목록에서 삭제하기
-					}                
-					li.remove();                                   // 화면에서 삭제하기 
+										
+//					const index = parseInt(li.dataset.index, 10);  // 삭제할 li의 index 가져오기
+//					let removedFile;
+//					if (arrFiles.length == 1){  
+//						console.log(" remove1 file arrfiles "+arrFiles[index].name);                       // 마지막 한개가 삭제가 안되서 강제로 clear
+//					    removedFile = arrFiles.splice(index,1)[0];    // 파일 목록에서 삭제하기 삭제한 파일을 보관해서, fileMap에서도 같은 파일을 삭제
+//						console.log(" remove1 file "+removedFile.name);                  
+//						arrFiles = [];                                
+//					} else {				                 
+//						console.log(" remove2 file arrfiles "+arrFiles[index].name);
+//					    removedFile = arrFiles.splice(index,1)[0];   // 파일 목록에서 삭제하기 삭제한 파일을 보관해서, fileMap에서도 같은 파일을 삭제
+//						console.log(" remove2 file "+removedFile.name);             
+//					}                
+
+					// arrFiles에서 클릭된 li 삭제, 관련된 fileMap, arrFiles 삭제, input.files 수정, formData 재생성
+					const liFileName = li.dataset.fileName;
+					const liFileUploadPath = li.dataset.fileUploadPath;
+					const liFileUuid = li.dataset.fileUuid;
+					let removedFile;
+					let removeKey;
+					let findKey = false;
+
+					// 1. li 삭제
+					console.log("1. delete li "+li.innerHTML);
+					li.remove();                                    // 화면에서 삭제하기
+					 
+					// 2. fileMap 삭제
+					console.log("delete content :: "+liFileName+liFileUploadPath+liFileUuid);
+					for (const [key, value] of fileMap) {
+						console.log(" fileMap all data :: "+key+" "+value.fileName+value.fileUploadPath+value.fileUuid);
+					}
+					for (const [key, value] of fileMap) { // 2-1. fileName,value,UploadPath,fileUuid 다 같은 데이터 찾기. 기존에 서버까지 올라왔던 파일.
+						if (value.fileName == liFileName &&
+							value.fileUploadPath == liFileUploadPath &&
+							value.fileUuid == liFileUuid){
+							console.log("2-1. delete map filename "+key);
+							removeKey = key;                       // arrFiles를 삭제할 key(file.name, file.fileName) 저장
+							findKey = true;
+							fileMap.delete(key);
+							break;
+						}
+					}
+					
+					if (!findKey){    // 2-2. fileName,value,UploadPath,fileUuid 다 같은 데이터 없을때. 최초 올라온 데이타 일 경우
+						for (const [key, value] of fileMap) {           // 2-1. fileName,value,UploadPath,fileUuid 다 같은 데이터 찾기
+							if (key == liFileName){
+								console.log("2-2. delete map filename "+key);
+								removeKey = key;                       // arrFiles를 삭제할 key(file.name, file.fileName) 저장
+								fileMap.delete(key);
+								break;
+							}
+					}
+						
+						findKey = false;
+					}
+
+					// 3. arrFiles 삭제				
+					// 삭제될 인덱스 찾기
+					const removeIndex = arrFiles.findIndex((file) => file.name == removeKey);
+							
+					console.log("3. delete arrFiles index :: "+removeIndex);		
+					if (removeIndex != -1) {
+						arrFiles.splice(removeIndex,1);	            // arrFiles에서 삭제하기 
+					}
+					
+					// 4. input 수정
 					const dataTransfer = new DataTransfer();       // 최종 파일 목록을 파일리스트에 세트. 파일선택옆에 최종 파일 갯수를 나오게 하기 위해서
 					arrFiles.forEach(file => dataTransfer.items.add(file)); // 삭제한 목록을 화면 "파일선택" 옆에 보여주기
-					input.files = dataTransfer.files;
+					input.files = dataTransfer.files;              // 파일 선택 옆에 갯수 수정하기
+					
+					// 서버로 갔다 오기 위해 만들어 놓은 formData도 수정해야 됨
+					
+//					for (const [key, value] of fileMap) {
+//						console.log("map filename "+key);
+//						if (key == removedFile.name){
+//							console.log(" deleted map filename "+key);
+//							fileMap.delete(key);
+//							break;
+//						}
+//					}
+					
+					// 5. formData 재생성
+					const formData = new FormData(); // 새로운 FormData 객체 생성
+					const existingFilesArray = [];
+					fileMap.forEach((item, key) => {
+					console.log(`파일 이름: ${key}`);
+					console.log(`isNew: ${item.isNew}`);
+					console.log(`파일 객체: `, item.file); 
+					
+					   if (item.isNew) {
+					       formData.append("multipartFiles", item.file); // 신규 파일은 multipartFiles
+					   } else {
+//					        formData.append("existingFiles", JSON.stringify([{						
+							existingFilesArray.push({    // formData에 추가할 existingFilesArray 생성
+								fileName: item.fileName, // 기존 파일 이름
+								fileUploadPath: item.fileUploadPath, // 중간 path
+								fileUuid: item.fileUuid, // 서버에서 관리하는 UUID
+								fileSize: item.fileSize, // 파일 size
+								fileIsImage: item.fileIsImage, // 파일이 이미지인지 여부
+								boardNo: item.boardNo // 게시판 번호
+						});
+
+//						}]));
+
+					   }
+					});
+					if (existingFilesArray.length > 0 ){  // formData에 기존 file 정보를 json으로 변경해서 전송
+						formData.append("existingFiles", JSON.stringify(existingFilesArray));
+					}
+										   
+					console.log("5. formData :: ");
+					logFormData(formData);
+					
+//					// 현재 삭제된 태그의 index보타 큰 index 1씩 빼주기;; arrFiles의 index와 맞추기 위해
+//					Array.from(ul.querySelectorAll("li")).forEach((ul, ulIndex)=>{                                
+//						if (e.target.matches(".file-cancel")){
+//							const li = e.target.closest("li");
+//							if (li){
+//								let currentIndex = parseInt(li.dataset.index, 10);
+//								console.log("index - 1 1 li current index "+currentIndex+" "+li.innerHTML);
+//								if (currentIndex > index){                    
+//									li.dataset.index = currentIndex - 1;
+//									console.log("index - 1 2  li index "+index+" "+li.innerHTML);
+//								}
+//							}
+//							
+//						}
+//					});
+					console.log(ul.innerHTML);
 				}
 			}
 		});

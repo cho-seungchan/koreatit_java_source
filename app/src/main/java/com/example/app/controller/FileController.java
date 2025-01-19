@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriUtils;
@@ -43,10 +44,37 @@ public class FileController {
 
 	
 	@PostMapping("/upload")
-	public List<FileVO> postFilesUpload(@RequestParam("multipartFiles") List<MultipartFile> multipartFiles) 
+//	public List<FileVO> postFilesUpload(@RequestParam("multipartFiles") List<MultipartFile> multipartFiles) 2025.1.17 막음
+	public List<FileVO> postFilesUpload(
+	        @RequestPart(value = "multipartFiles", required = false) List<MultipartFile> multipartFiles,
+	        @RequestPart(value = "existingFiles", required = false) String existingFilesJson)
 			throws IllegalStateException, IOException {
 		
-		return fileService.postFilesUPload(multipartFiles);
+//		System.out.println("get in postFilesUpload ");
+//		System.out.println("get in postFilesUpload ");
+//		
+//		if (multipartFiles != null && !multipartFiles.isEmpty()) {
+//		    for (MultipartFile file : multipartFiles) {
+//		        System.out.println("파일 이름: " + file.getOriginalFilename());
+//		        System.out.println("파일 크기: " + file.getSize());
+//		        System.out.println("파일 타입: " + file.getContentType());
+//		    }
+//		} else {
+//		    System.out.println("multipartFiles가 비어있습니다.");
+//		}
+		
+//		if (existingFilesJson != null && !existingFilesJson.isEmpty()) {
+//		    System.out.println("existingFilesJson: " + existingFilesJson);
+//		} else {
+//		    System.out.println("existingFilesJson이 비어있습니다.");
+//		}
+		
+		// existingFilesJson이 null이면 빈 문자열로 초기화
+//	    if (existingFilesJson == null) {
+//	        existingFilesJson = "";
+//	    }
+	    
+		return fileService.postFilesUPload(multipartFiles, existingFilesJson);
 		
 	}
 

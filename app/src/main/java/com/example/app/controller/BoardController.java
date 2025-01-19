@@ -47,8 +47,6 @@ public class BoardController {
 	@PostMapping("/write")
 	public String postBoardWrite(@ModelAttribute("boardDto") BoardDto boardDto, 
 								 RedirectAttributes redirectAttributes) {
-
-		System.out.println("insert controller postBoardWrite");
 		
 		try {
 			boardService.postBoardWrite(boardDto);
@@ -65,12 +63,12 @@ public class BoardController {
 									Search search, Criteria criteria, Model model) {
 		BoardDto boardDto = boardService.getBoardReadBoardNo(boardNo);
 		model.addAttribute("boardDto", boardDto);
-		if (boardDto.getFiles() != null) {
-			System.out.println("controller getBoardReadBoardNo"+boardDto.getFiles().stream()
-					.map(file -> file.toString()).collect(Collectors.joining(", ")));
-		} else {
-			System.out.println("controller getBoardReadBoardNo boardDto.getFiles()는 null");
-		}
+//		if (boardDto.getFiles() != null) {
+//			System.out.println("controller getBoardReadBoardNo"+boardDto.getFiles().stream()
+//					.map(file -> file.toString()).collect(Collectors.joining(", ")));
+//		} else {
+//			System.out.println("controller getBoardReadBoardNo boardDto.getFiles()는 null");
+//		}
 	}
 	
 	@PostMapping("/modify")
@@ -78,8 +76,6 @@ public class BoardController {
 							Search search, Criteria criteria, 
 							RedirectAttributes redirectAttributes ) {
 
-		System.out.println("insert controller postBoardModify");
-		System.out.println("insert controller postBoardModify");
 		boardService.postBoardModify(boardDto);
 		
 		 // 쿼리 파라미터로 데이터 전달 /board/read?boardNo=123&page=1&type=w&keyWord=example

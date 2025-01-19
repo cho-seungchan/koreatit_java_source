@@ -1,5 +1,6 @@
 package com.example.app.mapper;
 
+import java.io.File;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
@@ -29,7 +30,9 @@ public interface BoardMapper {
 
 	int getTotal(@Param("search") Search search);     // 전체 레코드 수 
 
+	int findFile(@Param("fileUploadPath")String fileUploadPath, 
+			@Param("fileUuid")String fileUuid, @Param("fileName")String fileName);
 
-
+	List<FileVO> yesterFilesInDB();
 
 }
