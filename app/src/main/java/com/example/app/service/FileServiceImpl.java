@@ -16,7 +16,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.app.domain.vo.FileVO;
 import com.example.app.mapper.BoardMapper;
-import com.example.app.mapper.FileMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;

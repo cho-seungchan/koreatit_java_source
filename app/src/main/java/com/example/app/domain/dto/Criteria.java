@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Criteria {
-	private int      page;  
+	private int      page;        
 	private int      rowCount;
 	private int      pageCount;
 	private int      startPage;
@@ -24,7 +24,8 @@ public class Criteria {
 		this.total = total; // 전체 레코드 수
 		rowCount   = 10;    // 한페이지에 보여줄 갯수
 		pageCount  = 10;    // 밑에 보여줄 최대 페이지수  1 2 3 4 5 6 7 8 9 10 >> 
-		endPage    = (int)Math.ceil(page/(double)pageCount) * pageCount;
+		endPage    = (int)Math.ceil(page/(double)pageCount) * pageCount; 
+							// 올림이므로 1~10 => 10, 11~20 => 20....
 		                    // 1 2 3 4 5 6 7 8 9 10 >> 의 마지막 수 즉, 10, 20, 30....
 		startPage  = endPage - pageCount + 1;
                             // 1 2 3 4 5 6 7 8 9 10 >> 의 첫번째 수 즉, 1, 11, 21.....

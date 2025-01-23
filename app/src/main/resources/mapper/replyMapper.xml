@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.app.mapper.ReplyMapper">
+
+<insert id="postReplyWrite">
+	<![CDATA[
+	INSERT INTO TBL_REPLY
+			(REPLY_NO, 
+			 REPLY_CONTENT, 
+			 REPLY_WRITER,
+			 BOARD_NO)
+	VALUES
+			(SEQ_REPLY_NO.NEXTVAL,
+			 #{replyContent},
+			 #{replyWriter},
+			 #{boardNo}   )
+	]]>
+</insert>
+
+<sql id="search">
+        <if test="replyKeyword != null and !replyKeyword.equals('')">
+            AND
+<!--           <trim prefix="(" prefixOverrides="OR" suffix=")"> -->
+                <foreach item="type" collection="replyTypes" separator="OR">
+<!--                    <trim prefix="OR">  -->
+                        <choose>
+                            <when test="type == 'w'.toString()">
+                                REPLY_WRITER LIKE '%' || #{replyKeyword} || '%'
+                            </when>
+                            <when test="type == 'c'.toString()">
+                                REPLY_CONTENT LIKE '%' || #{replyKeyword} || '%'
+                            </when>
+                        </choose>
+<!--                    </trim>   -->
+                </foreach>
+<!--            </trim> -->
+        </if>
+</sql>
+
+<select id="getReplyList" resultType="replyDto">
+	SELECT  REPLY_NO, REPLY_CONTENT, REPLY_WRITER, REPLY_REGISTER_DATE, REPLY_UPDATE_DATE, BOARD_NO
+	FROM
+	(	SELECT ROWNUM R, REPLY_NO, REPLY_CONTENT, REPLY_WRITER, REPLY_REGISTER_DATE, REPLY_UPDATE_DATE, BOARD_NO
+		FROM
+		(
+			SELECT REPLY_NO, REPLY_CONTENT, REPLY_WRITER, REPLY_REGISTER_DATE, REPLY_UPDATE_DATE, BOARD_NO
+			FROM 	TBL_REPLY
+			WHERE   BOARD_NO = #{boardNO}
+        	<include refid="search"/>
+        	ORDER BY REPLY_NO DESC
+		)
+		<![CDATA[ WHERE ROWNUM <= #{replyPage} * #{rowCount} ]]>
+	)
+	
+		<![CDATA[ WHERE R > (#{replyPage} - 1) * #{rowCount} ]]>
+
+</select>
+
+<select id="getCountOfNextPage" resultType="int">
+	SELECT  COUNT(REPLY_NO)
+	FROM
+	(	SELECT ROWNUM R, REPLY_NO, REPLY_CONTENT, REPLY_WRITER, REPLY_REGISTER_DATE, REPLY_UPDATE_DATE, BOARD_NO
+		FROM
+		(
+			SELECT REPLY_NO, REPLY_CONTENT, REPLY_WRITER, REPLY_REGISTER_DATE, REPLY_UPDATE_DATE, BOARD_NO
+			FROM 	TBL_REPLY
+			WHERE   BOARD_NO = #{boardNO}
+        	<include refid="search"/>
+        	ORDER BY REPLY_NO DESC
+		)
+		<![CDATA[ WHERE ROWNUM <= (#{replyPage} + 1) * #{rowCount} ]]>
+	)
+	
+		<![CDATA[ WHERE R > #{replyPage} * #{rowCount} ]]>
+</select>
+
+</mapper>

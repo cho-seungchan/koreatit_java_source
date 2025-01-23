@@ -98,28 +98,43 @@
                                 <input type="submit" class="button" value="삭제"/>
                             </li>
                         </ul>  
-                        <ul class="icons">
-                            <li style="display: block">
-                                <span class="icon solid fa-envelope"></span>
-                                <strong>댓글</strong>
-                            </li>
-                        </ul>
-                        <a href="javascript:void(0)" class="register button primary small" style="width: 100%">댓글 등록</a>
-                        <div style="display: none" class="register-form">
-                            <div>
-                                <h4>작성자</h4>
-                                <input type="text" name="replyWriter" placeholder="Replier">
-                            </div>
-                            <div>
-                                <h4>댓글</h4>
-                                <textarea rows="6" name="replyContent" placeholder="Reply" style="resize: none"></textarea>
-                            </div>
-                            <div style="text-align: right">
-                                <a href="javascript:void(0)" class="finish button primary small">등록</a>
-                                <a href="javascript:void(0)" class="cancel button primary small">취소</a>
-                            </div>
-                        </div>
-                        <ul class="replies"></ul>
+						<ul class="icons">
+						    <li style="display: block">
+						        <span class="icon solid fa-envelope"></span>
+						        <strong>댓글</strong>
+						    </li>
+						</ul>
+						<div class="fields">
+						    <div class="field">
+						        <div id="searchWrap">
+						            <select name="type">
+						                <option value="">검색 기준</option>
+						                <option value="cw">전체</option>
+						                <option value="c">내용</option>
+						                <option value="w">작성자</option>
+						            </select>
+						            <input type="text" name="keyword">
+						            <a class="search button primary icon solid fa-search">검색</a>
+						        </div>
+						    </div>
+						</div>
+						<a href="javascript:void(0)" class="register button primary small" style="width: 100%">댓글 등록</a>
+						<div style="display: none" class="register-form">
+						    <div>
+						        <h4>작성자</h4>
+						        <input type="text" name="replyWriter" placeholder="Replier">
+						    </div>
+						    <div>
+						        <h4>댓글</h4>
+						        <textarea rows="6" name="replyContent" placeholder="Reply" style="resize: none"></textarea>
+						    </div>
+						    <div style="text-align: right">
+						        <a href="javascript:void(0)" class="finish button primary small">등록</a>
+						        <a href="javascript:void(0)" class="cancel button primary small">취소</a>
+						    </div>
+						</div>
+						<ul class="replies"></ul>
+						<a href="javascript:void(0)" class="more-replies button primary small" style="width: 100%">더보기</a>
                     </form>
                     <div class="paging" style="text-align: center"></div>
                 </div>
@@ -134,22 +149,21 @@
 <script src="/js/breakpoints.min.js"></script>
 <script src="/js/util.js"></script>
 <script src="/js/main.js"></script>
+<script>
+    let boardNo = '[[${boardDto.boardNo != null ? boardDto.boardNo : 0}]]';
+    let replyPage = 1;
+    let rowCount = 10;
+    let replyType = $("select[name=type]").val();
+    let replyKeyword = $("input[name='keyword']").val();
+</script>
+<script src="/js/reply.js"></script>
 <script th:inline="javascript">
-/*
-	let boardNo = "[[${boardDto.boardNo}]]";
-
-	function modify(){
-	    location.href = "/board/modify?boardNo=" + boardNo;
-	}	
-*/	
-let boardNo = [[${boardDto.boardNo}]];
-let page = [[${criteria.page}]];
-let type = [[${search.type}]];
-let keyWord = [[${search.keyWord}]];
+	
+let page = '[[${criteria.page != null ? criteria.page : 1}]]';
+let type = '[[${search.type}]]';
+let keyWord = '[[${search.keyWord}]]';
 const uploadResult = document.querySelector(".uploadResult ul");
-let files = /*[[${boardDto.files}]]*/ [];
-
-showThumbNail();
+let files = JSON.parse('[[${boardDto.files != null ? boardDto.files : "[]"}]]');	
 
 function modify() {
     location.href = "/board/modify?boardNo=" + boardNo + 
